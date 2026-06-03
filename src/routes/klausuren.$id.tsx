@@ -23,7 +23,6 @@ type Tab = "themen" | "flashcards" | "summary";
 
 function KlausurDetail() {
   const { id } = Route.useParams();
-  const navigate = useNavigate();
   const [klausuren, setKlausuren] = useLocalStorage<Klausur[]>("sub.klausuren", []);
   const klausur = useMemo(() => klausuren.find((k) => String(k.id) === id), [klausuren, id]);
 
