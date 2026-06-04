@@ -12,6 +12,56 @@ export type Thema = {
   keypoints: string;
   mindmap: string;
   offeneFragen: string;
+  /** AI-filled: typische Verwechslungen / Fehler zu diesem Thema */
+  verwechslungen?: string;
+};
+
+export type Flashcard = { question: string; answer: string };
+
+export type MindmapStroke = {
+  color: string;
+  width: number;
+  /** alternierend x,y Punkte */
+  points: number[];
+};
+
+export type MockExamQuestion = {
+  id: number;
+  type: "kurz" | "lang" | "rechnung" | "mc";
+  thema: string;
+  punkte: number;
+  frage: string;
+  /** optional: choices for MC */
+  choices?: string[];
+  musterloesung?: string;
+};
+
+export type MockExamAnswer = {
+  questionId: number;
+  antwort: string;
+  punkte?: number;
+  feedback?: string;
+};
+
+export type MockExam = {
+  id: number;
+  createdAt: string;
+  schwierigkeit: "leicht" | "mittel" | "schwer" | "fies";
+  format: string;
+  fokusThemen: string[];
+  questions: MockExamQuestion[];
+  answers: MockExamAnswer[];
+  gesamtfeedback?: string;
+  gesamtpunkte?: number;
+  maxpunkte?: number;
+  done?: boolean;
+};
+
+export type ErklaerEntry = {
+  id: number;
+  frage: string;
+  antwort: string;
+  date: string;
 };
 
 export type Klausur = {
@@ -22,6 +72,20 @@ export type Klausur = {
   probleme: string;
   loesungen: string;
   themen: Thema[];
+  /** persistierte Lernmaterialien */
+  files?: FileBlock[];
+  /** Mindmap-Strokes (handschriftlich) */
+  mindmap?: MindmapStroke[];
+  /** Probeklausuren */
+  exams?: MockExam[];
+  /** Altklausuren (für Lehrerstil) */
+  altklausuren?: FileBlock[];
+  /** Erklärbär-Verlauf */
+  erklaerungen?: ErklaerEntry[];
+  /** Executive Summary Cache */
+  summary?: string;
+  /** Thema-spezifische Flashcards */
+  themaFlashcards?: Record<number, Flashcard[]>;
 };
 
 export type Todo = {
