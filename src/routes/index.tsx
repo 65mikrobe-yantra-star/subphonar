@@ -59,12 +59,57 @@ function Dashboard() {
   const openTodos = useMemo(() => todos.filter((t) => t.status !== "done"), [todos]);
   const overdueTodos = useMemo(() => openTodos.filter((t) => isOverdue(t.due)), [openTodos]);
 
-  const quote = HARVEY_QUOTES[quoteIdx];
+  const systemPrompt = `Du bist Subphonar, der persönliche Lern-Coach des Schülers. Aktueller Stand: Gesamtschnitt ${
+    gesamtschnitt ? gesamtschnitt.toFixed(2) : "—"
+  }. Anstehende Klausuren: ${
+    upcomingKlausuren.map((k) => `${k.title} (${k.fach}, ${formatDate(k.datum)})`).join("; ") || "keine"
+  }. Offene Todos: ${openTodos.length} (${overdueTodos.length} überfällig). Antworte präzise, motivierend, auf Deutsch.`;
+
+  async function generatePlan() {
+    setPlanLoading(true);
+    try {
+      const prompt = `Erstelle einen konkreten Lern-Tagesplan für HEUTE.
+Klausuren: ${upcomingKlausuren.map((k) => `${k.title} in ${Math.ceil((new Date(k.datum).getTime() - Date.now()) / 86400000)} Tagen, Themen: ${k.themen.map((t) => `${t.name} [P:${t.prioritaet}]`).join(", ")}`).join(" | ") || "keine"}
+Offene Todos: ${openTodos.slice(0, 10).map((t) => `${t.title} [${t.prioritaet}]${t.due ? ` bis ${t.due}` : ""}`).join("; ") || "keine"}
+
+Antworte als kompakter Tagesplan mit 4-6 Time-Blocks (z.B. "09:00–10:30 …"), priorisiert nach Dringlichkeit. Markdown, kurz, motivierend. Schließe mit einem einzigen Harvey-Specter-style Push-Satz.`;
+      const res = await chatFn({ data: { systemPrompt, messages: [{ role: "user", content: prompt }], files: [], model: "google/gemini-2.5-flash" } });
+      setPlan(res.error ? `⚠️ ${res.error}` : res.text);
+    } finally {
+      setPlanLoading(false);
+    }
+  }
+
+  async function generateTodosFromKlausur() {
+    const next = upcomingKlausuren[0];
+    if (!next) return;
+    setPlanLoading(true);
+    try {
+      const prompt = `Für Klausur "${next.title}" (${next.fach}, in ${Math.ceil((new Date(next.datum).getTime() - Date.now()) / 86400000)} Tagen). Themen: ${next.themen.map((t) => `${t.name} [P:${t.prioritaet}, KP:${t.keypoints}]`).join("; ")}.
+Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"title":"…","notes":"…","prioritaet":"hoch|mittel|niedrig"}]}`;
+      const res = await chatFn({ data: { systemPrompt, messages: [{ role: "user", content: prompt }], files: [], model: "google/gemini-2.5-flash" } });
+      if (res.error) return;
+      const clean = res.text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean) as { todos: { title: string; notes?: string; prioritaet: "hoch" | "mittel" | "niedrig" }[] };
+      const newTodos: Todo[] = parsed.todos.map((t, i) => ({
+        id: Date.now() + i,
+        status: "todo",
+        title: t.title,
+        notes: t.notes ?? "",
+        prioritaet: t.prioritaet,
+        due: "",
+        klausurId: next.id,
+      }));
+      setTodos([...newTodos, ...todos]);
+    } finally {
+      setPlanLoading(false);
+    }
+  }
 
   return (
     <div style={s.app}>
       <AppNav />
-      <div style={s.main(false)}>
+      <div style={s.main(aiOpen)}>
         {/* Hero */}
         <div
           style={{
