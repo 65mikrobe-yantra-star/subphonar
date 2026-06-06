@@ -25,8 +25,12 @@ export const Route = createFileRoute("/")({
 function Dashboard() {
   const [faecher] = useLocalStorage<Fach[]>("sub.faecher", FAECHER_DEFAULT);
   const [klausuren] = useLocalStorage<Klausur[]>("sub.klausuren", []);
-  const [todos] = useLocalStorage<Todo[]>("sub.todos", []);
+  const [todos, setTodos] = useLocalStorage<Todo[]>("sub.todos", []);
   const [quoteIdx, setQuoteIdx] = useState(0);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [plan, setPlan] = useLocalStorage<string>("sub.dashboard.plan", "");
+  const [planLoading, setPlanLoading] = useState(false);
+  const chatFn = useServerFn(chat);
 
   useEffect(() => {
     setQuoteIdx(Math.floor(Math.random() * HARVEY_QUOTES.length));
