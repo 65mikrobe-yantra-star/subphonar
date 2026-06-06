@@ -49,6 +49,8 @@ function KlausurDetail() {
   });
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [aiFillLoading, setAiFillLoading] = useState<number | null>(null);
+  const [aiFillError, setAiFillError] = useState<string | null>(null);
+  const [showFlashcards, setShowFlashcards] = useState<Record<number, boolean>>({});
   const chatFn = useServerFn(chat);
 
   if (!klausur) {
@@ -89,22 +91,51 @@ function KlausurDetail() {
     setShowAddThema(false);
   }
 
-  const systemPrompt = `Du bist Lernassistent für Klausur "${klausur.title}" (${klausur.fach}, ${formatDate(klausur.datum)}). Probleme: ${klausur.probleme}. Lösungen: ${klausur.loesungen}. Themen: ${klausur.themen
-    .map((t) => `${t.name} [P:${t.prioritaet}, KP:${t.keypoints}, Fragen:${t.offeneFragen}, Verwechslungen:${t.verwechslungen ?? "-"}]`)
-    .join("; ")}. Antworte präzise, strukturiert, auf Deutsch.`;
+  const lastExam = (klausur.exams ?? [])[0];
+  const recentErklaer = (klausur.erklaerungen ?? []).slice(0, 3).map((e) => `F: ${e.frage}`).join(" | ");
+  const systemPrompt = `Du bist Lern-Coach für Klausur "${klausur.title}" (${klausur.fach}, ${formatDate(klausur.datum)}).
+Probleme des Schülers: ${klausur.probleme || "—"}
+Bisherige Lösungsansätze: ${klausur.loesungen || "—"}
+
+THEMEN:
+${klausur.themen.map((t) => `• ${t.name} [Prio:${t.prioritaet}, Zeit:${t.zeit || "?"}]
+  KeyPoints: ${t.keypoints || "—"}
+  Offene Fragen: ${t.offeneFragen || "—"}
+  Häufige Verwechslungen: ${t.verwechslungen ?? "—"}`).join("\n")}
+
+${klausur.summary ? `EXECUTIVE SUMMARY (bereits erstellt):\n${klausur.summary.slice(0, 800)}\n` : ""}
+${lastExam ? `LETZTE PROBEKLAUSUR (${lastExam.schwierigkeit}): ${lastExam.done ? `${lastExam.gesamtpunkte}/${lastExam.maxpunkte} P. — ${lastExam.gesamtfeedback?.slice(0, 300) ?? ""}` : "noch nicht bewertet"}` : ""}
+${recentErklaer ? `KÜRZLICHE ERKLÄRBÄR-FRAGEN: ${recentErklaer}` : ""}
+${files.length ? `HOCHGELADENE DATEIEN: ${files.map((f) => f.name).join(", ")}` : ""}
+
+Antworte präzise, strukturiert, auf Deutsch. Beziehe dich konkret auf die Daten oben — nutze sie, statt allgemeine Erklärungen zu geben.`;
 
   async function aiFillThema(t: Thema) {
     setAiFillLoading(t.id);
+    setAiFillError(null);
     try {
-      const prompt = `Für das Thema "${t.name}" aus Klausur "${klausur!.title}" (${klausur!.fach}):
-Aktuelle Key Points: ${t.keypoints || "—"}
+      const prompt = `Fülle das Thema "${t.name}" professionell und konkret aus — als Lern-Coach für eine ${klausur!.fach}-Klausur.
 
-Antworte NUR als JSON:
-{"keypoints":"erweiterte/präzisierte Key Points","offeneFragen":"3 typische Verständnisfragen die ein Schüler haben sollte","verwechslungen":"Was Schüler hier häufig verwechseln oder falsch machen — sehr konkret","keywords":"5-8 zentrale Begriffe komma-separiert"}`;
+Was schon da ist:
+- Key Points: ${t.keypoints || "—"}
+- Mindmap-Notiz: ${t.mindmap || "—"}
+- Offene Fragen: ${t.offeneFragen || "—"}
+- Verwechslungen: ${t.verwechslungen ?? "—"}
+
+Antworte AUSSCHLIESSLICH als gültiges JSON (keine Backticks, kein Markdown):
+{
+  "keypoints": "5-8 präzise Key Points als Bulletliste mit '-' am Anfang jeder Zeile. Konkret, prüfungsrelevant, keine Plattitüden.",
+  "offeneFragen": "3-4 typische Verständnisfragen die ein Schüler kurz vor der Klausur haben sollte (als Liste mit '-').",
+  "verwechslungen": "2-3 typische Verwechslungen oder Fehler bei diesem Thema — sehr konkret, mit 'Achtung:' Markern.",
+  "keywords": "5-8 zentrale Fachbegriffe komma-separiert"
+}`;
       const res = await chatFn({
         data: { systemPrompt, messages: [{ role: "user", content: prompt }], files, model: "google/gemini-2.5-flash" },
       });
-      if (res.error) return;
+      if (res.error) {
+        setAiFillError(res.error);
+        return;
+      }
       const clean = res.text.replace(/```json|```/g, "").trim();
       const p = JSON.parse(clean) as { keypoints?: string; offeneFragen?: string; verwechslungen?: string; keywords?: string };
       sync({
@@ -120,6 +151,8 @@ Antworte NUR als JSON:
             : x,
         ),
       });
+    } catch (e) {
+      setAiFillError(e instanceof Error ? e.message : "KI-Antwort konnte nicht verarbeitet werden");
     } finally {
       setAiFillLoading(null);
     }
@@ -139,10 +172,13 @@ Antworte NUR als JSON: {"cards":[{"question":"...","answer":"..."}]}. Mische Ver
       const res = await chatFn({
         data: { systemPrompt, messages: [{ role: "user", content: prompt }], files, model: "google/gemini-2.5-flash" },
       });
-      if (res.error) return;
+      if (res.error) { setAiFillError(res.error); return; }
       const clean = res.text.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(clean) as { cards: Flashcard[] };
       sync({ ...klausur!, themaFlashcards: { ...themaFlashcards, [t.id]: parsed.cards || [] } });
+      setShowFlashcards((m) => ({ ...m, [t.id]: true }));
+    } catch (e) {
+      setAiFillError(e instanceof Error ? e.message : "Flashcards konnten nicht erstellt werden");
     } finally {
       setAiFillLoading(null);
     }
@@ -226,10 +262,15 @@ Sei präzise und prüfungsrelevant.`;
         {/* THEMEN */}
         {tab === "themen" && (
           <div>
-            <div style={{ marginBottom: 12 }}>
+            <div style={{ marginBottom: 12, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <button style={{ ...s.smallBtn(C.teal), padding: "6px 14px", fontSize: 12 }} onClick={() => setShowAddThema(true)}>
                 + Weiteres Thema
               </button>
+              {aiFillError && (
+                <div style={{ fontSize: 11, color: "#F09595", background: C.redDim, padding: "5px 10px", borderRadius: 6, border: `1px solid ${C.red}33` }}>
+                  ⚠ {aiFillError}
+                </div>
+              )}
             </div>
             {klausur.themen.length === 0 && (
               <div style={{ background: C.surface, border: `1px dashed ${C.border}`, borderRadius: 10, padding: 30, textAlign: "center", color: C.textMuted, fontSize: 13 }}>
@@ -300,13 +341,29 @@ Sei präzise und prüfungsrelevant.`;
                     </div>
                     {fcs && fcs.length > 0 && (
                       <div style={{ marginTop: 12, padding: 12, background: C.surfaceHigh, borderRadius: 10, border: `1px solid ${C.border}` }}>
-                        <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
-                          {fcs.length} Flashcards
+                        <div style={{ display: "flex", alignItems: "center", marginBottom: 8, gap: 8 }}>
+                          <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                            {fcs.length} Flashcards
+                          </div>
+                          <button
+                            style={{ ...s.smallBtn(C.purple), padding: "3px 10px", fontSize: 10, marginLeft: "auto" }}
+                            onClick={() => setShowFlashcards((m) => ({ ...m, [t.id]: !m[t.id] }))}
+                          >
+                            {showFlashcards[t.id] ? "Einklappen" : "Üben"}
+                          </button>
+                          <button
+                            style={{ ...s.smallBtn(C.red), padding: "3px 10px", fontSize: 10 }}
+                            onClick={() => {
+                              if (!confirm("Flashcards löschen?")) return;
+                              sync({ ...klausur, themaFlashcards: Object.fromEntries(Object.entries(themaFlashcards).filter(([k]) => k !== String(t.id))) });
+                            }}
+                          >
+                            Karten löschen
+                          </button>
                         </div>
-                        <FlashcardView
-                          cards={fcs}
-                          onClose={() => sync({ ...klausur, themaFlashcards: Object.fromEntries(Object.entries(themaFlashcards).filter(([k]) => k !== String(t.id))) })}
-                        />
+                        {showFlashcards[t.id] && (
+                          <FlashcardView cards={fcs} onClose={() => setShowFlashcards((m) => ({ ...m, [t.id]: false }))} />
+                        )}
                       </div>
                     )}
                   </div>
