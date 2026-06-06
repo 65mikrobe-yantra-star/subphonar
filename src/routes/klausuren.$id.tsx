@@ -112,16 +112,30 @@ Antworte präzise, strukturiert, auf Deutsch. Beziehe dich konkret auf die Daten
 
   async function aiFillThema(t: Thema) {
     setAiFillLoading(t.id);
+    setAiFillError(null);
     try {
-      const prompt = `Für das Thema "${t.name}" aus Klausur "${klausur!.title}" (${klausur!.fach}):
-Aktuelle Key Points: ${t.keypoints || "—"}
+      const prompt = `Fülle das Thema "${t.name}" professionell und konkret aus — als Lern-Coach für eine ${klausur!.fach}-Klausur.
 
-Antworte NUR als JSON:
-{"keypoints":"erweiterte/präzisierte Key Points","offeneFragen":"3 typische Verständnisfragen die ein Schüler haben sollte","verwechslungen":"Was Schüler hier häufig verwechseln oder falsch machen — sehr konkret","keywords":"5-8 zentrale Begriffe komma-separiert"}`;
+Was schon da ist:
+- Key Points: ${t.keypoints || "—"}
+- Mindmap-Notiz: ${t.mindmap || "—"}
+- Offene Fragen: ${t.offeneFragen || "—"}
+- Verwechslungen: ${t.verwechslungen ?? "—"}
+
+Antworte AUSSCHLIESSLICH als gültiges JSON (keine Backticks, kein Markdown):
+{
+  "keypoints": "5-8 präzise Key Points als Bulletliste mit '-' am Anfang jeder Zeile. Konkret, prüfungsrelevant, keine Plattitüden.",
+  "offeneFragen": "3-4 typische Verständnisfragen die ein Schüler kurz vor der Klausur haben sollte (als Liste mit '-').",
+  "verwechslungen": "2-3 typische Verwechslungen oder Fehler bei diesem Thema — sehr konkret, mit 'Achtung:' Markern.",
+  "keywords": "5-8 zentrale Fachbegriffe komma-separiert"
+}`;
       const res = await chatFn({
         data: { systemPrompt, messages: [{ role: "user", content: prompt }], files, model: "google/gemini-2.5-flash" },
       });
-      if (res.error) return;
+      if (res.error) {
+        setAiFillError(res.error);
+        return;
+      }
       const clean = res.text.replace(/```json|```/g, "").trim();
       const p = JSON.parse(clean) as { keypoints?: string; offeneFragen?: string; verwechslungen?: string; keywords?: string };
       sync({
@@ -137,6 +151,8 @@ Antworte NUR als JSON:
             : x,
         ),
       });
+    } catch (e) {
+      setAiFillError(e instanceof Error ? e.message : "KI-Antwort konnte nicht verarbeitet werden");
     } finally {
       setAiFillLoading(null);
     }
