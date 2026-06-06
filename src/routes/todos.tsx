@@ -1,10 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { AppNav } from "@/components/AppNav";
+import { AiPanel } from "@/components/AiPanel";
 import { APP_NAME, C, PRIORITY_COLORS, STATUS_COLUMNS } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
 import { formatDate, isOverdue } from "@/lib/helpers";
+import { chat } from "@/lib/ai.functions";
 import type { Klausur, Prioritaet, Todo } from "@/lib/types";
 
 export const Route = createFileRoute("/todos")({
