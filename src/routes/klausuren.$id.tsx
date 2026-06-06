@@ -91,9 +91,24 @@ function KlausurDetail() {
     setShowAddThema(false);
   }
 
-  const systemPrompt = `Du bist Lernassistent für Klausur "${klausur.title}" (${klausur.fach}, ${formatDate(klausur.datum)}). Probleme: ${klausur.probleme}. Lösungen: ${klausur.loesungen}. Themen: ${klausur.themen
-    .map((t) => `${t.name} [P:${t.prioritaet}, KP:${t.keypoints}, Fragen:${t.offeneFragen}, Verwechslungen:${t.verwechslungen ?? "-"}]`)
-    .join("; ")}. Antworte präzise, strukturiert, auf Deutsch.`;
+  const lastExam = (klausur.exams ?? [])[0];
+  const recentErklaer = (klausur.erklaerungen ?? []).slice(0, 3).map((e) => `F: ${e.frage}`).join(" | ");
+  const systemPrompt = `Du bist Lern-Coach für Klausur "${klausur.title}" (${klausur.fach}, ${formatDate(klausur.datum)}).
+Probleme des Schülers: ${klausur.probleme || "—"}
+Bisherige Lösungsansätze: ${klausur.loesungen || "—"}
+
+THEMEN:
+${klausur.themen.map((t) => `• ${t.name} [Prio:${t.prioritaet}, Zeit:${t.zeit || "?"}]
+  KeyPoints: ${t.keypoints || "—"}
+  Offene Fragen: ${t.offeneFragen || "—"}
+  Häufige Verwechslungen: ${t.verwechslungen ?? "—"}`).join("\n")}
+
+${klausur.summary ? `EXECUTIVE SUMMARY (bereits erstellt):\n${klausur.summary.slice(0, 800)}\n` : ""}
+${lastExam ? `LETZTE PROBEKLAUSUR (${lastExam.schwierigkeit}): ${lastExam.done ? `${lastExam.gesamtpunkte}/${lastExam.maxpunkte} P. — ${lastExam.gesamtfeedback?.slice(0, 300) ?? ""}` : "noch nicht bewertet"}` : ""}
+${recentErklaer ? `KÜRZLICHE ERKLÄRBÄR-FRAGEN: ${recentErklaer}` : ""}
+${files.length ? `HOCHGELADENE DATEIEN: ${files.map((f) => f.name).join(", ")}` : ""}
+
+Antworte präzise, strukturiert, auf Deutsch. Beziehe dich konkret auf die Daten oben — nutze sie, statt allgemeine Erklärungen zu geben.`;
 
   async function aiFillThema(t: Thema) {
     setAiFillLoading(t.id);
