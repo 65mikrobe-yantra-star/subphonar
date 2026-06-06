@@ -26,7 +26,31 @@ export function PruefungsTab({ klausur, systemPrompt, contextFiles, update }: Pr
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<number | null>(null);
+  const [hints, setHints] = useState<Record<number, string>>({});
+  const [hintLoading, setHintLoading] = useState<number | null>(null);
   const active = exams.find((e) => e.id === activeId) ?? null;
+
+  async function tipp(qid: number) {
+    if (!active) return;
+    const q = active.questions.find((x) => x.id === qid);
+    if (!q) return;
+    setHintLoading(qid);
+    try {
+      const a = active.answers.find((x) => x.questionId === qid);
+      const prompt = `Gib einen TIPP (NICHT die Lösung!) zu dieser Aufgabe. Max. 2 Sätze, lenke nur in die richtige Richtung.
+
+Frage: ${q.frage}
+Bisherige Schüler-Antwort: ${a?.antwort || "(noch nichts geschrieben)"}
+
+Wenn die Antwort schon teilweise stimmt, sage WAS noch fehlt. Wenn sie leer ist, gib einen Anstoß welcher Begriff/welches Konzept der Schlüssel ist.`;
+      const res = await chatFn({
+        data: { systemPrompt, messages: [{ role: "user", content: prompt }], files: contextFiles, model: "google/gemini-2.5-flash" },
+      });
+      setHints((h) => ({ ...h, [qid]: res.error ? `⚠ ${res.error}` : res.text }));
+    } finally {
+      setHintLoading(null);
+    }
+  }
 
   function toggleFokus(name: string) {
     setFokus((f) => (f.includes(name) ? f.filter((x) => x !== name) : [...f, name]));
