@@ -106,6 +106,8 @@ Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"
     }
   }
 
+  const quote = HARVEY_QUOTES[quoteIdx];
+
   return (
     <div style={s.app}>
       <AppNav />
@@ -117,17 +119,57 @@ Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"
             border: `1px solid ${C.purple}44`,
             borderRadius: 16,
             padding: "28px 32px",
-            marginBottom: 24,
+            marginBottom: 18,
           }}
         >
-          <div style={{ fontSize: 10, color: C.purpleLight, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 8 }}>
-            ✦ Willkommen zurück
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+            <div style={{ fontSize: 10, color: C.purpleLight, letterSpacing: "0.15em", textTransform: "uppercase" }}>
+              ✦ Willkommen zurück
+            </div>
+            <button
+              style={{ ...s.smallBtn(C.purple), marginLeft: "auto", padding: "5px 12px", fontSize: 11 }}
+              onClick={() => setAiOpen(!aiOpen)}
+            >
+              ✦ KI-Chat
+            </button>
           </div>
           <div style={{ fontSize: 22, fontWeight: 700, color: C.text, lineHeight: 1.4, marginBottom: 6, fontStyle: "italic" }}>
             „{quote.quote}"
           </div>
           <div style={{ fontSize: 12, color: C.textMuted }}>— Harvey Specter · {quote.context}</div>
         </div>
+
+        {/* KI Aktionen */}
+        <div style={{ background: C.surface, border: `1px solid ${C.purple}33`, borderRadius: 12, padding: 16, marginBottom: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.purpleLight }}>✦ KI-Aktionen</div>
+            <button
+              style={{ ...s.smallBtn(C.purple), padding: "6px 14px", fontSize: 12, marginLeft: "auto" }}
+              onClick={() => void generatePlan()}
+              disabled={planLoading}
+            >
+              {planLoading ? "…" : "📅 KI-Tagesplan"}
+            </button>
+            <button
+              style={{ ...s.smallBtn(C.amber), padding: "6px 14px", fontSize: 12 }}
+              onClick={() => void generateTodosFromKlausur()}
+              disabled={planLoading || upcomingKlausuren.length === 0}
+              title={upcomingKlausuren.length === 0 ? "Keine Klausur geplant" : `Aus: ${upcomingKlausuren[0].title}`}
+            >
+              ✓ Todos aus Klausur
+            </button>
+          </div>
+          {plan ? (
+            <div style={{ background: C.surfaceHigh, border: `1px solid ${C.border}`, borderRadius: 8, padding: 14, fontSize: 12, color: C.text, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+              {plan}
+            </div>
+          ) : (
+            <div style={{ fontSize: 11, color: C.textMuted }}>
+              Lass dir einen Tagesplan aus deinen Klausuren & Todos generieren oder konkrete Lern-Aufgaben aus der nächsten Klausur ableiten.
+            </div>
+          )}
+        </div>
+
 
         {/* Stat Cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14, marginBottom: 28 }}>
