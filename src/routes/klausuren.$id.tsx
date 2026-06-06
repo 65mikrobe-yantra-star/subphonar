@@ -262,10 +262,15 @@ Sei präzise und prüfungsrelevant.`;
         {/* THEMEN */}
         {tab === "themen" && (
           <div>
-            <div style={{ marginBottom: 12 }}>
+            <div style={{ marginBottom: 12, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <button style={{ ...s.smallBtn(C.teal), padding: "6px 14px", fontSize: 12 }} onClick={() => setShowAddThema(true)}>
                 + Weiteres Thema
               </button>
+              {aiFillError && (
+                <div style={{ fontSize: 11, color: "#F09595", background: C.redDim, padding: "5px 10px", borderRadius: 6, border: `1px solid ${C.red}33` }}>
+                  ⚠ {aiFillError}
+                </div>
+              )}
             </div>
             {klausur.themen.length === 0 && (
               <div style={{ background: C.surface, border: `1px dashed ${C.border}`, borderRadius: 10, padding: 30, textAlign: "center", color: C.textMuted, fontSize: 13 }}>
