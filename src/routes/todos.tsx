@@ -246,6 +246,7 @@ Erstelle 6-10 konkrete, kleine Lern-Aufgaben (jede ≤45min). Antworte NUR als J
           </div>
         )}
       </div>
+      <AiPanel show={aiOpen} onClose={() => setAiOpen(false)} systemPrompt={systemPrompt} extraContext="Todos" />
     </div>
   );
 }
