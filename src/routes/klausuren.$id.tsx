@@ -336,13 +336,29 @@ Sei präzise und prüfungsrelevant.`;
                     </div>
                     {fcs && fcs.length > 0 && (
                       <div style={{ marginTop: 12, padding: 12, background: C.surfaceHigh, borderRadius: 10, border: `1px solid ${C.border}` }}>
-                        <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>
-                          {fcs.length} Flashcards
+                        <div style={{ display: "flex", alignItems: "center", marginBottom: 8, gap: 8 }}>
+                          <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                            {fcs.length} Flashcards
+                          </div>
+                          <button
+                            style={{ ...s.smallBtn(C.purple), padding: "3px 10px", fontSize: 10, marginLeft: "auto" }}
+                            onClick={() => setShowFlashcards((m) => ({ ...m, [t.id]: !m[t.id] }))}
+                          >
+                            {showFlashcards[t.id] ? "Einklappen" : "Üben"}
+                          </button>
+                          <button
+                            style={{ ...s.smallBtn(C.red), padding: "3px 10px", fontSize: 10 }}
+                            onClick={() => {
+                              if (!confirm("Flashcards löschen?")) return;
+                              sync({ ...klausur, themaFlashcards: Object.fromEntries(Object.entries(themaFlashcards).filter(([k]) => k !== String(t.id))) });
+                            }}
+                          >
+                            Karten löschen
+                          </button>
                         </div>
-                        <FlashcardView
-                          cards={fcs}
-                          onClose={() => sync({ ...klausur, themaFlashcards: Object.fromEntries(Object.entries(themaFlashcards).filter(([k]) => k !== String(t.id))) })}
-                        />
+                        {showFlashcards[t.id] && (
+                          <FlashcardView cards={fcs} onClose={() => setShowFlashcards((m) => ({ ...m, [t.id]: false }))} />
+                        )}
                       </div>
                     )}
                   </div>
