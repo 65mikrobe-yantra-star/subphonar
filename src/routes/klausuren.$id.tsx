@@ -172,10 +172,13 @@ Antworte NUR als JSON: {"cards":[{"question":"...","answer":"..."}]}. Mische Ver
       const res = await chatFn({
         data: { systemPrompt, messages: [{ role: "user", content: prompt }], files, model: "google/gemini-2.5-flash" },
       });
-      if (res.error) return;
+      if (res.error) { setAiFillError(res.error); return; }
       const clean = res.text.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(clean) as { cards: Flashcard[] };
       sync({ ...klausur!, themaFlashcards: { ...themaFlashcards, [t.id]: parsed.cards || [] } });
+      setShowFlashcards((m) => ({ ...m, [t.id]: true }));
+    } catch (e) {
+      setAiFillError(e instanceof Error ? e.message : "Flashcards konnten nicht erstellt werden");
     } finally {
       setAiFillLoading(null);
     }
