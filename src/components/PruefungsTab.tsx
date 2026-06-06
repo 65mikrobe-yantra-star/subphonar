@@ -324,6 +324,22 @@ ${block}`;
                     onChange={(e) => setAnswer(q.id, e.target.value)}
                     disabled={active.done}
                   />
+                  {!active.done && (
+                    <div style={{ marginTop: 6, display: "flex", gap: 6, alignItems: "center" }}>
+                      <button
+                        style={{ ...s.smallBtn(C.amber), padding: "4px 10px", fontSize: 10 }}
+                        onClick={() => void tipp(q.id)}
+                        disabled={hintLoading === q.id}
+                      >
+                        {hintLoading === q.id ? "…" : "💡 Tipp (ohne Lösung)"}
+                      </button>
+                    </div>
+                  )}
+                  {hints[q.id] && !active.done && (
+                    <div style={{ marginTop: 6, padding: 8, background: C.amberDim, borderRadius: 6, border: `1px solid ${C.amber}44`, fontSize: 12, color: C.text, lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
+                      💡 {hints[q.id]}
+                    </div>
+                  )}
                   {a?.punkte != null && (
                     <div style={{ marginTop: 8, padding: 10, background: C.tealDim, borderRadius: 8, border: `1px solid ${C.teal}33` }}>
                       <div style={{ fontSize: 11, color: C.teal, fontWeight: 700, marginBottom: 4 }}>
