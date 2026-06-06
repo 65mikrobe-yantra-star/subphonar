@@ -49,6 +49,8 @@ function KlausurDetail() {
   });
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [aiFillLoading, setAiFillLoading] = useState<number | null>(null);
+  const [aiFillError, setAiFillError] = useState<string | null>(null);
+  const [showFlashcards, setShowFlashcards] = useState<Record<number, boolean>>({});
   const chatFn = useServerFn(chat);
 
   if (!klausur) {
