@@ -1,10 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { AppNav } from "@/components/AppNav";
+import { AiPanel } from "@/components/AiPanel";
 import { APP_NAME, C, FAECHER_DEFAULT, HARVEY_QUOTES } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
 import { avg, formatDate, isOverdue, punkte2Note } from "@/lib/helpers";
+import { chat } from "@/lib/ai.functions";
 import type { Fach, Klausur, Todo } from "@/lib/types";
 
 export const Route = createFileRoute("/")({
@@ -22,8 +25,12 @@ export const Route = createFileRoute("/")({
 function Dashboard() {
   const [faecher] = useLocalStorage<Fach[]>("sub.faecher", FAECHER_DEFAULT);
   const [klausuren] = useLocalStorage<Klausur[]>("sub.klausuren", []);
-  const [todos] = useLocalStorage<Todo[]>("sub.todos", []);
+  const [todos, setTodos] = useLocalStorage<Todo[]>("sub.todos", []);
   const [quoteIdx, setQuoteIdx] = useState(0);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [plan, setPlan] = useLocalStorage<string>("sub.dashboard.plan", "");
+  const [planLoading, setPlanLoading] = useState(false);
+  const chatFn = useServerFn(chat);
 
   useEffect(() => {
     setQuoteIdx(Math.floor(Math.random() * HARVEY_QUOTES.length));
@@ -52,12 +59,59 @@ function Dashboard() {
   const openTodos = useMemo(() => todos.filter((t) => t.status !== "done"), [todos]);
   const overdueTodos = useMemo(() => openTodos.filter((t) => isOverdue(t.due)), [openTodos]);
 
+  const systemPrompt = `Du bist Subphonar, der persönliche Lern-Coach des Schülers. Aktueller Stand: Gesamtschnitt ${
+    gesamtschnitt ? gesamtschnitt.toFixed(2) : "—"
+  }. Anstehende Klausuren: ${
+    upcomingKlausuren.map((k) => `${k.title} (${k.fach}, ${formatDate(k.datum)})`).join("; ") || "keine"
+  }. Offene Todos: ${openTodos.length} (${overdueTodos.length} überfällig). Antworte präzise, motivierend, auf Deutsch.`;
+
+  async function generatePlan() {
+    setPlanLoading(true);
+    try {
+      const prompt = `Erstelle einen konkreten Lern-Tagesplan für HEUTE.
+Klausuren: ${upcomingKlausuren.map((k) => `${k.title} in ${Math.ceil((new Date(k.datum).getTime() - Date.now()) / 86400000)} Tagen, Themen: ${k.themen.map((t) => `${t.name} [P:${t.prioritaet}]`).join(", ")}`).join(" | ") || "keine"}
+Offene Todos: ${openTodos.slice(0, 10).map((t) => `${t.title} [${t.prioritaet}]${t.due ? ` bis ${t.due}` : ""}`).join("; ") || "keine"}
+
+Antworte als kompakter Tagesplan mit 4-6 Time-Blocks (z.B. "09:00–10:30 …"), priorisiert nach Dringlichkeit. Markdown, kurz, motivierend. Schließe mit einem einzigen Harvey-Specter-style Push-Satz.`;
+      const res = await chatFn({ data: { systemPrompt, messages: [{ role: "user", content: prompt }], files: [], model: "google/gemini-2.5-flash" } });
+      setPlan(res.error ? `⚠️ ${res.error}` : res.text);
+    } finally {
+      setPlanLoading(false);
+    }
+  }
+
+  async function generateTodosFromKlausur() {
+    const next = upcomingKlausuren[0];
+    if (!next) return;
+    setPlanLoading(true);
+    try {
+      const prompt = `Für Klausur "${next.title}" (${next.fach}, in ${Math.ceil((new Date(next.datum).getTime() - Date.now()) / 86400000)} Tagen). Themen: ${next.themen.map((t) => `${t.name} [P:${t.prioritaet}, KP:${t.keypoints}]`).join("; ")}.
+Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"title":"…","notes":"…","prioritaet":"hoch|mittel|niedrig"}]}`;
+      const res = await chatFn({ data: { systemPrompt, messages: [{ role: "user", content: prompt }], files: [], model: "google/gemini-2.5-flash" } });
+      if (res.error) return;
+      const clean = res.text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean) as { todos: { title: string; notes?: string; prioritaet: "hoch" | "mittel" | "niedrig" }[] };
+      const newTodos: Todo[] = parsed.todos.map((t, i) => ({
+        id: Date.now() + i,
+        status: "todo",
+        title: t.title,
+        notes: t.notes ?? "",
+        prioritaet: t.prioritaet,
+        due: "",
+        klausurId: next.id,
+      }));
+      setTodos([...newTodos, ...todos]);
+    } finally {
+      setPlanLoading(false);
+    }
+  }
+
   const quote = HARVEY_QUOTES[quoteIdx];
 
   return (
     <div style={s.app}>
       <AppNav />
-      <div style={s.main(false)}>
+      <div style={s.main(aiOpen)}>
         {/* Hero */}
         <div
           style={{
@@ -65,17 +119,57 @@ function Dashboard() {
             border: `1px solid ${C.purple}44`,
             borderRadius: 16,
             padding: "28px 32px",
-            marginBottom: 24,
+            marginBottom: 18,
           }}
         >
-          <div style={{ fontSize: 10, color: C.purpleLight, letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 8 }}>
-            ✦ Willkommen zurück
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
+            <div style={{ fontSize: 10, color: C.purpleLight, letterSpacing: "0.15em", textTransform: "uppercase" }}>
+              ✦ Willkommen zurück
+            </div>
+            <button
+              style={{ ...s.smallBtn(C.purple), marginLeft: "auto", padding: "5px 12px", fontSize: 11 }}
+              onClick={() => setAiOpen(!aiOpen)}
+            >
+              ✦ KI-Chat
+            </button>
           </div>
           <div style={{ fontSize: 22, fontWeight: 700, color: C.text, lineHeight: 1.4, marginBottom: 6, fontStyle: "italic" }}>
             „{quote.quote}"
           </div>
           <div style={{ fontSize: 12, color: C.textMuted }}>— Harvey Specter · {quote.context}</div>
         </div>
+
+        {/* KI Aktionen */}
+        <div style={{ background: C.surface, border: `1px solid ${C.purple}33`, borderRadius: 12, padding: 16, marginBottom: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.purpleLight }}>✦ KI-Aktionen</div>
+            <button
+              style={{ ...s.smallBtn(C.purple), padding: "6px 14px", fontSize: 12, marginLeft: "auto" }}
+              onClick={() => void generatePlan()}
+              disabled={planLoading}
+            >
+              {planLoading ? "…" : "📅 KI-Tagesplan"}
+            </button>
+            <button
+              style={{ ...s.smallBtn(C.amber), padding: "6px 14px", fontSize: 12 }}
+              onClick={() => void generateTodosFromKlausur()}
+              disabled={planLoading || upcomingKlausuren.length === 0}
+              title={upcomingKlausuren.length === 0 ? "Keine Klausur geplant" : `Aus: ${upcomingKlausuren[0].title}`}
+            >
+              ✓ Todos aus Klausur
+            </button>
+          </div>
+          {plan ? (
+            <div style={{ background: C.surfaceHigh, border: `1px solid ${C.border}`, borderRadius: 8, padding: 14, fontSize: 12, color: C.text, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+              {plan}
+            </div>
+          ) : (
+            <div style={{ fontSize: 11, color: C.textMuted }}>
+              Lass dir einen Tagesplan aus deinen Klausuren & Todos generieren oder konkrete Lern-Aufgaben aus der nächsten Klausur ableiten.
+            </div>
+          )}
+        </div>
+
 
         {/* Stat Cards */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14, marginBottom: 28 }}>
@@ -188,6 +282,7 @@ function Dashboard() {
           </div>
         )}
       </div>
+      <AiPanel show={aiOpen} onClose={() => setAiOpen(false)} systemPrompt={systemPrompt} extraContext="Dashboard" />
     </div>
   );
 }
