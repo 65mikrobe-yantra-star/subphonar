@@ -24,6 +24,10 @@ function TodosPage() {
   const [todos, setTodos] = useLocalStorage<Todo[]>("sub.todos", []);
   const [klausuren] = useLocalStorage<Klausur[]>("sub.klausuren", []);
   const [showNew, setShowNew] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [klausurPick, setKlausurPick] = useState<string>("");
+  const chatFn = useServerFn(chat);
   const [draft, setDraft] = useState<Omit<Todo, "id" | "status">>({
     title: "",
     notes: "",
@@ -45,19 +49,82 @@ function TodosPage() {
     setTodos(todos.filter((t) => t.id !== id));
   }
 
+  async function generateFromKlausur() {
+    const k = klausuren.find((x) => String(x.id) === klausurPick);
+    if (!k) return;
+    setAiLoading(true);
+    try {
+      const days = k.datum ? Math.ceil((new Date(k.datum).getTime() - Date.now()) / 86400000) : null;
+      const prompt = `Klausur "${k.title}" (${k.fach}${days !== null ? `, in ${days} Tagen` : ""}). Themen: ${k.themen.map((t) => `${t.name} [P:${t.prioritaet}, KP:${t.keypoints}, Fehler:${t.verwechslungen ?? "-"}]`).join("; ")}.
+Erstelle 6-10 konkrete, kleine Lern-Aufgaben (jede ≤45min). Antworte NUR als JSON:
+{"todos":[{"title":"…","notes":"warum/wie","prioritaet":"hoch|mittel|niedrig"}]}`;
+      const res = await chatFn({ data: { systemPrompt: "Du bist ein Lern-Coach.", messages: [{ role: "user", content: prompt }], files: [], model: "google/gemini-2.5-flash" } });
+      if (res.error) { alert(res.error); return; }
+      const clean = res.text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean) as { todos: { title: string; notes?: string; prioritaet: Prioritaet }[] };
+      const newTodos: Todo[] = parsed.todos.map((t, i) => ({
+        id: Date.now() + i,
+        status: "todo",
+        title: t.title,
+        notes: t.notes ?? "",
+        prioritaet: t.prioritaet,
+        due: k.datum ?? "",
+        klausurId: k.id,
+      }));
+      setTodos([...newTodos, ...todos]);
+      setKlausurPick("");
+    } finally {
+      setAiLoading(false);
+    }
+  }
+
+  const systemPrompt = `Du bist Coach für Aufgabenmanagement. Aktuelle Todos: ${todos.map((t) => `${t.title} [${t.status}/${t.prioritaet}]`).join("; ") || "keine"}. Antworte präzise, auf Deutsch.`;
+
   return (
     <div style={s.app}>
       <AppNav />
-      <div style={s.main(false)}>
-        <div style={{ display: "flex", alignItems: "center", marginBottom: 20 }}>
+      <div style={s.main(aiOpen)}>
+        <div style={{ display: "flex", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
           <div style={s.sectionTitle}>✓ Todos</div>
           <button
-            style={{ ...s.smallBtn(C.purple), padding: "6px 14px", fontSize: 12, marginLeft: "auto" }}
+            style={{ ...s.smallBtn(C.purpleLight), padding: "6px 12px", fontSize: 12, marginLeft: "auto" }}
+            onClick={() => setAiOpen(!aiOpen)}
+          >
+            ✦ KI-Chat
+          </button>
+          <button
+            style={{ ...s.smallBtn(C.purple), padding: "6px 14px", fontSize: 12 }}
             onClick={() => setShowNew(true)}
           >
             + Neue Aufgabe
           </button>
         </div>
+
+        {/* KI Aktion */}
+        {klausuren.length > 0 && (
+          <div style={{ background: C.surface, border: `1px solid ${C.amber}33`, borderRadius: 10, padding: 12, marginBottom: 18, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ fontSize: 12, color: C.amber, fontWeight: 600 }}>✦ KI:</div>
+            <div style={{ fontSize: 12, color: C.textMuted }}>Aufgaben aus Klausur ableiten</div>
+            <select
+              style={{ ...s.sel, marginBottom: 0, padding: "5px 8px", fontSize: 11, flex: 1, minWidth: 160 }}
+              value={klausurPick}
+              onChange={(e) => setKlausurPick(e.target.value)}
+            >
+              <option value="">Klausur wählen…</option>
+              {klausuren.map((k) => (
+                <option key={k.id} value={k.id}>{k.title}</option>
+              ))}
+            </select>
+            <button
+              style={{ ...s.smallBtn(C.amber), padding: "6px 14px", fontSize: 11 }}
+              onClick={() => void generateFromKlausur()}
+              disabled={aiLoading || !klausurPick}
+            >
+              {aiLoading ? "…" : "Generieren"}
+            </button>
+          </div>
+        )}
+
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 14 }}>
           {STATUS_COLUMNS.map((col) => {
