@@ -266,15 +266,9 @@ Sei präzise und prüfungsrelevant.`;
         {/* THEMEN */}
         <div id="sec-themen" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
         <SectionTitle icon="📋" label="Themen-Tabelle" color={C.purple} />
-        {true && (
           <div>
-            <div style={{ marginBottom: 12, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-              <button style={{ ...s.smallBtn(C.teal), padding: "6px 14px", fontSize: 12 }} onClick={() => setShowAddThema(true)}>
-                + Weiteres Thema
-              </button>
-              {/* setTab kept to silence unused */}
-              <button style={{ display: "none" }} onClick={() => setTab("themen")}>x</button>
-          <div>
+            {/* setTab kept to silence unused */}
+            <button style={{ display: "none" }} onClick={() => setTab("themen")}>x</button>
             <div style={{ marginBottom: 12, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <button style={{ ...s.smallBtn(C.teal), padding: "6px 14px", fontSize: 12 }} onClick={() => setShowAddThema(true)}>
                 + Weiteres Thema
