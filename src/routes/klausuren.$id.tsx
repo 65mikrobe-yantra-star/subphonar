@@ -496,6 +496,16 @@ Sei präzise und prüfungsrelevant.`;
   );
 }
 
+function SectionTitle({ icon, label, color }: { icon: string; label: string; color: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color }}>
+        {icon} {label}
+      </div>
+    </div>
+  );
+}
+
 function ThemaField({ label, value, onChange, color }: { label: string; value: string; onChange: (v: string) => void; color: string }) {
   return (
     <div>
