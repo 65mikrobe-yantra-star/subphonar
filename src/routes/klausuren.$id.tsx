@@ -40,7 +40,7 @@ function KlausurDetail() {
   const [klausuren, setKlausuren] = useLocalStorage<Klausur[]>("sub.klausuren", []);
   const klausur = useMemo(() => klausuren.find((k) => String(k.id) === id), [klausuren, id]);
 
-  const [tab, setTab] = useState<Tab>("themen");
+  const [, setTab] = useState<SectionId>("themen");
   const [aiOpen, setAiOpen] = useState(false);
   const [showAddThema, setShowAddThema] = useState(false);
   const [newThema, setNewThema] = useState<Omit<Thema, "id">>({
