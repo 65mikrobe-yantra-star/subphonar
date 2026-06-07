@@ -20,23 +20,27 @@ export const Route = createFileRoute("/klausuren/$id")({
   component: KlausurDetail,
 });
 
-type Tab = "themen" | "dateien" | "mindmap" | "pruefung" | "summary" | "erklaer";
+type SectionId = "dateien" | "themen" | "mindmap" | "summary" | "pruefung" | "erklaer";
 
-const TABS: { id: Tab; label: string; icon: string; color: string }[] = [
-  { id: "themen", label: "Themen", icon: "📋", color: C.purple },
+const SECTIONS: { id: SectionId; label: string; icon: string; color: string }[] = [
   { id: "dateien", label: "Dateien", icon: "📎", color: C.amber },
+  { id: "themen", label: "Themen", icon: "📋", color: C.purple },
   { id: "mindmap", label: "Mindmap", icon: "🗺", color: C.teal },
-  { id: "pruefung", label: "Prüfung", icon: "📝", color: "#E05A2B" },
   { id: "summary", label: "Summary", icon: "📄", color: C.purpleLight },
+  { id: "pruefung", label: "Prüfung", icon: "📝", color: "#E05A2B" },
   { id: "erklaer", label: "Erklärbär", icon: "🧑‍🏫", color: C.amber },
 ];
+
+function scrollToSection(id: SectionId) {
+  document.getElementById(`sec-${id}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
 function KlausurDetail() {
   const { id } = Route.useParams();
   const [klausuren, setKlausuren] = useLocalStorage<Klausur[]>("sub.klausuren", []);
   const klausur = useMemo(() => klausuren.find((k) => String(k.id) === id), [klausuren, id]);
 
-  const [tab, setTab] = useState<Tab>("themen");
+  const [, setTab] = useState<SectionId>("themen");
   const [aiOpen, setAiOpen] = useState(false);
   const [showAddThema, setShowAddThema] = useState(false);
   const [newThema, setNewThema] = useState<Omit<Thema, "id">>({
@@ -247,10 +251,10 @@ Sei präzise und prüfungsrelevant.`;
           </div>
         )}
 
-        {/* Tabs */}
-        <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap" }}>
-          {TABS.map((t) => (
-            <button key={t.id} style={s.tabBtn(tab === t.id, t.color)} onClick={() => setTab(t.id)}>
+        {/* Sprung-Nav (Anker) */}
+        <div style={{ position: "sticky", top: 0, zIndex: 5, background: C.bg, padding: "8px 0", marginBottom: 14, display: "flex", gap: 6, flexWrap: "wrap", borderBottom: `1px solid ${C.border}` }}>
+          {SECTIONS.map((t) => (
+            <button key={t.id} style={s.tabBtn(false, t.color)} onClick={() => scrollToSection(t.id)}>
               {t.icon} {t.label}
               {t.id === "themen" && ` (${klausur.themen.length})`}
               {t.id === "dateien" && files.length > 0 && ` (${files.length})`}
@@ -260,8 +264,11 @@ Sei präzise und prüfungsrelevant.`;
         </div>
 
         {/* THEMEN */}
-        {tab === "themen" && (
+        <div id="sec-themen" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+        <SectionTitle icon="📋" label="Themen-Tabelle" color={C.purple} />
           <div>
+            {/* setTab kept to silence unused */}
+            <button style={{ display: "none" }} onClick={() => setTab("themen")}>x</button>
             <div style={{ marginBottom: 12, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <button style={{ ...s.smallBtn(C.teal), padding: "6px 14px", fontSize: 12 }} onClick={() => setShowAddThema(true)}>
                 + Weiteres Thema
@@ -371,12 +378,12 @@ Sei präzise und prüfungsrelevant.`;
               })}
             </div>
           </div>
-        )}
+        </div>
 
         {/* DATEIEN */}
-        {tab === "dateien" && (
+        <div id="sec-dateien" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+        <SectionTitle icon="📎" label="Dateien & Lernmaterialien" color={C.amber} />
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: C.amber, marginBottom: 6 }}>📎 Lernmaterialien</div>
             <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 14 }}>
               PDFs, Bilder, Notizen — die KI hat in allen Bereichen Zugriff darauf und nutzt sie für Flashcards, Probeklausuren und Erklärungen.
             </div>
@@ -387,13 +394,14 @@ Sei präzise und prüfungsrelevant.`;
               label="Dateien hinzufügen"
             />
           </div>
-        )}
+        </div>
 
         {/* MINDMAP */}
-        {tab === "mindmap" && (
+        <div id="sec-mindmap" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+        <SectionTitle icon="🗺" label="Themen-Mindmap" color={C.teal} />
           <div style={{ background: "#fdfdf7", border: `1px solid ${C.border}`, borderRadius: 12, padding: 18 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a2a" }}>🗺 Mindmap (handschriftlich)</div>
+              <div style={{ fontSize: 13, color: "#1a1a2a" }}>Skizze, Konzept-Verbindungen…</div>
               <button
                 style={{ ...s.smallBtn(C.purple), marginLeft: "auto", padding: "5px 12px", fontSize: 11 }}
                 onClick={async () => {
@@ -410,16 +418,14 @@ Sei präzise und prüfungsrelevant.`;
             <MindmapCanvas
               strokes={klausur.mindmap ?? []}
               onChange={(strokes: MindmapStroke[]) => sync({ ...klausur, mindmap: strokes })}
-              height={520}
+              height={420}
             />
           </div>
-        )}
-
-        {/* PRÜFUNG */}
-        {tab === "pruefung" && <PruefungsTab klausur={klausur} systemPrompt={systemPrompt} contextFiles={files} update={sync} />}
+        </div>
 
         {/* SUMMARY */}
-        {tab === "summary" && (
+        <div id="sec-summary" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+        <SectionTitle icon="📄" label="Executive Summary" color={C.purpleLight} />
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 22 }}>
             {summaryLoading && (
               <div style={{ textAlign: "center", padding: 40, color: C.textMuted }}>
@@ -448,10 +454,19 @@ Sei präzise und prüfungsrelevant.`;
               </div>
             )}
           </div>
-        )}
+        </div>
+
+        {/* PRÜFUNG */}
+        <div id="sec-pruefung" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+        <SectionTitle icon="📝" label="Probeklausur" color={"#E05A2B"} />
+        <PruefungsTab klausur={klausur} systemPrompt={systemPrompt} contextFiles={files} update={sync} />
+        </div>
 
         {/* ERKLÄRBÄR */}
-        {tab === "erklaer" && <ErklaerbaerTab klausur={klausur} systemPrompt={systemPrompt} contextFiles={files} update={sync} />}
+        <div id="sec-erklaer" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+        <SectionTitle icon="🧑‍🏫" label="Erklärbär" color={C.amber} />
+        <ErklaerbaerTab klausur={klausur} systemPrompt={systemPrompt} contextFiles={files} update={sync} />
+        </div>
 
         {/* AI Panel */}
         <AiPanel show={aiOpen} onClose={() => setAiOpen(false)} systemPrompt={systemPrompt} files={files} extraContext={`Klausur: ${klausur.title}`} />
@@ -475,6 +490,16 @@ Sei präzise und prüfungsrelevant.`;
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function SectionTitle({ icon, label, color }: { icon: string; label: string; color: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+      <div style={{ fontSize: 16, fontWeight: 700, color }}>
+        {icon} {label}
       </div>
     </div>
   );
