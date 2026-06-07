@@ -385,11 +385,12 @@ Sei präzise und prüfungsrelevant.`;
             </div>
           </div>
         )}
+        </div>
 
         {/* DATEIEN */}
-        {tab === "dateien" && (
+        <div id="sec-dateien" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+        <SectionTitle icon="📎" label="Dateien & Lernmaterialien" color={C.amber} />
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 20 }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: C.amber, marginBottom: 6 }}>📎 Lernmaterialien</div>
             <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 14 }}>
               PDFs, Bilder, Notizen — die KI hat in allen Bereichen Zugriff darauf und nutzt sie für Flashcards, Probeklausuren und Erklärungen.
             </div>
@@ -400,13 +401,14 @@ Sei präzise und prüfungsrelevant.`;
               label="Dateien hinzufügen"
             />
           </div>
-        )}
+        </div>
 
         {/* MINDMAP */}
-        {tab === "mindmap" && (
+        <div id="sec-mindmap" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+        <SectionTitle icon="🗺" label="Themen-Mindmap" color={C.teal} />
           <div style={{ background: "#fdfdf7", border: `1px solid ${C.border}`, borderRadius: 12, padding: 18 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#1a1a2a" }}>🗺 Mindmap (handschriftlich)</div>
+              <div style={{ fontSize: 13, color: "#1a1a2a" }}>Skizze, Konzept-Verbindungen…</div>
               <button
                 style={{ ...s.smallBtn(C.purple), marginLeft: "auto", padding: "5px 12px", fontSize: 11 }}
                 onClick={async () => {
@@ -423,16 +425,14 @@ Sei präzise und prüfungsrelevant.`;
             <MindmapCanvas
               strokes={klausur.mindmap ?? []}
               onChange={(strokes: MindmapStroke[]) => sync({ ...klausur, mindmap: strokes })}
-              height={520}
+              height={420}
             />
           </div>
-        )}
-
-        {/* PRÜFUNG */}
-        {tab === "pruefung" && <PruefungsTab klausur={klausur} systemPrompt={systemPrompt} contextFiles={files} update={sync} />}
+        </div>
 
         {/* SUMMARY */}
-        {tab === "summary" && (
+        <div id="sec-summary" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+        <SectionTitle icon="📄" label="Executive Summary" color={C.purpleLight} />
           <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 22 }}>
             {summaryLoading && (
               <div style={{ textAlign: "center", padding: 40, color: C.textMuted }}>
@@ -461,10 +461,19 @@ Sei präzise und prüfungsrelevant.`;
               </div>
             )}
           </div>
-        )}
+        </div>
+
+        {/* PRÜFUNG */}
+        <div id="sec-pruefung" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+        <SectionTitle icon="📝" label="Probeklausur" color={"#E05A2B"} />
+        <PruefungsTab klausur={klausur} systemPrompt={systemPrompt} contextFiles={files} update={sync} />
+        </div>
 
         {/* ERKLÄRBÄR */}
-        {tab === "erklaer" && <ErklaerbaerTab klausur={klausur} systemPrompt={systemPrompt} contextFiles={files} update={sync} />}
+        <div id="sec-erklaer" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+        <SectionTitle icon="🧑‍🏫" label="Erklärbär" color={C.amber} />
+        <ErklaerbaerTab klausur={klausur} systemPrompt={systemPrompt} contextFiles={files} update={sync} />
+        </div>
 
         {/* AI Panel */}
         <AiPanel show={aiOpen} onClose={() => setAiOpen(false)} systemPrompt={systemPrompt} files={files} extraContext={`Klausur: ${klausur.title}`} />
