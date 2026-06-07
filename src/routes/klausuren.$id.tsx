@@ -251,10 +251,10 @@ Sei präzise und prüfungsrelevant.`;
           </div>
         )}
 
-        {/* Tabs */}
-        <div style={{ display: "flex", gap: 6, marginBottom: 18, flexWrap: "wrap" }}>
-          {TABS.map((t) => (
-            <button key={t.id} style={s.tabBtn(tab === t.id, t.color)} onClick={() => setTab(t.id)}>
+        {/* Sprung-Nav (Anker) */}
+        <div style={{ position: "sticky", top: 0, zIndex: 5, background: C.bg, padding: "8px 0", marginBottom: 14, display: "flex", gap: 6, flexWrap: "wrap", borderBottom: `1px solid ${C.border}` }}>
+          {SECTIONS.map((t) => (
+            <button key={t.id} style={s.tabBtn(false, t.color)} onClick={() => scrollToSection(t.id)}>
               {t.icon} {t.label}
               {t.id === "themen" && ` (${klausur.themen.length})`}
               {t.id === "dateien" && files.length > 0 && ` (${files.length})`}
@@ -264,7 +264,16 @@ Sei präzise und prüfungsrelevant.`;
         </div>
 
         {/* THEMEN */}
-        {tab === "themen" && (
+        <div id="sec-themen" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+        <SectionTitle icon="📋" label="Themen-Tabelle" color={C.purple} />
+        {true && (
+          <div>
+            <div style={{ marginBottom: 12, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <button style={{ ...s.smallBtn(C.teal), padding: "6px 14px", fontSize: 12 }} onClick={() => setShowAddThema(true)}>
+                + Weiteres Thema
+              </button>
+              {/* setTab kept to silence unused */}
+              <button style={{ display: "none" }} onClick={() => setTab("themen")}>x</button>
           <div>
             <div style={{ marginBottom: 12, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <button style={{ ...s.smallBtn(C.teal), padding: "6px 14px", fontSize: 12 }} onClick={() => setShowAddThema(true)}>
