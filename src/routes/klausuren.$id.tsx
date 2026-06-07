@@ -378,7 +378,7 @@ Sei präzise und prüfungsrelevant.`;
               })}
             </div>
           </div>
-        )}
+          </div>
         </div>
 
         {/* DATEIEN */}
