@@ -36,9 +36,9 @@ const KlausurenIndexRoute = KlausurenIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const KlausurenIdRoute = KlausurenIdRouteImport.update({
-  id: '/$id',
-  path: '/$id',
-  getParentRoute: () => KlausurenRoute,
+  id: '/klausuren/$id',
+  path: '/klausuren/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -75,6 +75,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   NotenRoute: typeof NotenRoute
   TodosRoute: typeof TodosRoute
+  KlausurenIdRoute: typeof KlausurenIdRoute
   KlausurenIndexRoute: typeof KlausurenIndexRoute
 }
 
@@ -110,10 +111,10 @@ declare module '@tanstack/react-router' {
     }
     '/klausuren/$id': {
       id: '/klausuren/$id'
-      path: '/$id'
+      path: '/klausuren/$id'
       fullPath: '/klausuren/$id'
       preLoaderRoute: typeof KlausurenIdRouteImport
-      parentRoute: typeof KlausurenRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -122,6 +123,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   NotenRoute: NotenRoute,
   TodosRoute: TodosRoute,
+  KlausurenIdRoute: KlausurenIdRoute,
   KlausurenIndexRoute: KlausurenIndexRoute,
 }
 export const routeTree = rootRouteImport
