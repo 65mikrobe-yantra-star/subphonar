@@ -11,8 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TodosRouteImport } from './routes/todos'
 import { Route as NotenRouteImport } from './routes/noten'
-import { Route as KlausurenRouteImport } from './routes/klausuren'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as KlausurenIndexRouteImport } from './routes/klausuren.index'
 import { Route as KlausurenIdRouteImport } from './routes/klausuren.$id'
 
 const TodosRoute = TodosRouteImport.update({
@@ -25,14 +25,14 @@ const NotenRoute = NotenRouteImport.update({
   path: '/noten',
   getParentRoute: () => rootRouteImport,
 } as any)
-const KlausurenRoute = KlausurenRouteImport.update({
-  id: '/klausuren',
-  path: '/klausuren',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KlausurenIndexRoute = KlausurenIndexRouteImport.update({
+  id: '/klausuren/',
+  path: '/klausuren/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KlausurenIdRoute = KlausurenIdRouteImport.update({
@@ -43,39 +43,39 @@ const KlausurenIdRoute = KlausurenIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/klausuren': typeof KlausurenRouteWithChildren
   '/noten': typeof NotenRoute
   '/todos': typeof TodosRoute
   '/klausuren/$id': typeof KlausurenIdRoute
+  '/klausuren/': typeof KlausurenIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/klausuren': typeof KlausurenRouteWithChildren
   '/noten': typeof NotenRoute
   '/todos': typeof TodosRoute
   '/klausuren/$id': typeof KlausurenIdRoute
+  '/klausuren': typeof KlausurenIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/klausuren': typeof KlausurenRouteWithChildren
   '/noten': typeof NotenRoute
   '/todos': typeof TodosRoute
   '/klausuren/$id': typeof KlausurenIdRoute
+  '/klausuren/': typeof KlausurenIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/klausuren' | '/noten' | '/todos' | '/klausuren/$id'
+  fullPaths: '/' | '/noten' | '/todos' | '/klausuren/$id' | '/klausuren/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/klausuren' | '/noten' | '/todos' | '/klausuren/$id'
-  id: '__root__' | '/' | '/klausuren' | '/noten' | '/todos' | '/klausuren/$id'
+  to: '/' | '/noten' | '/todos' | '/klausuren/$id' | '/klausuren'
+  id: '__root__' | '/' | '/noten' | '/todos' | '/klausuren/$id' | '/klausuren/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  KlausurenRoute: typeof KlausurenRouteWithChildren
   NotenRoute: typeof NotenRoute
   TodosRoute: typeof TodosRoute
+  KlausurenIndexRoute: typeof KlausurenIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -94,18 +94,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof NotenRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/klausuren': {
-      id: '/klausuren'
-      path: '/klausuren'
-      fullPath: '/klausuren'
-      preLoaderRoute: typeof KlausurenRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/klausuren/': {
+      id: '/klausuren/'
+      path: '/klausuren'
+      fullPath: '/klausuren/'
+      preLoaderRoute: typeof KlausurenIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/klausuren/$id': {
@@ -118,23 +118,11 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface KlausurenRouteChildren {
-  KlausurenIdRoute: typeof KlausurenIdRoute
-}
-
-const KlausurenRouteChildren: KlausurenRouteChildren = {
-  KlausurenIdRoute: KlausurenIdRoute,
-}
-
-const KlausurenRouteWithChildren = KlausurenRoute._addFileChildren(
-  KlausurenRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  KlausurenRoute: KlausurenRouteWithChildren,
   NotenRoute: NotenRoute,
   TodosRoute: TodosRoute,
+  KlausurenIndexRoute: KlausurenIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
