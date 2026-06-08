@@ -7,7 +7,7 @@ import { useLocalStorage } from "@/lib/storage";
 import { formatDate } from "@/lib/helpers";
 import type { Klausur } from "@/lib/types";
 
-export const Route = createFileRoute("/klausuren")({
+export const Route = createFileRoute("/klausuren/")({
   head: () => ({
     meta: [
       { title: `Klausuren — ${APP_NAME}` },
