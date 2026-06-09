@@ -20,13 +20,14 @@ export const Route = createFileRoute("/klausuren/$id")({
   component: KlausurDetail,
 });
 
-type SectionId = "dateien" | "themen" | "mindmap" | "summary" | "pruefung" | "erklaer" | "fehler";
+type SectionId = "dateien" | "themen" | "mindmap" | "summary" | "flashcards" | "pruefung" | "erklaer" | "fehler";
 
 const SECTIONS: { id: SectionId; label: string; icon: string; color: string }[] = [
   { id: "dateien", label: "Dateien", icon: "📎", color: C.amber },
   { id: "themen", label: "Themen", icon: "📋", color: C.purple },
   { id: "mindmap", label: "Mindmap", icon: "🗺", color: C.teal },
   { id: "summary", label: "Summary", icon: "📄", color: C.purpleLight },
+  { id: "flashcards", label: "Flashcards", icon: "🎴", color: C.purpleLight },
   { id: "pruefung", label: "Prüfung", icon: "📝", color: "#E05A2B" },
   { id: "erklaer", label: "Erklärbär", icon: "🧑‍🏫", color: C.amber },
   { id: "fehler", label: "Fehler-Journal", icon: "🧠", color: "#F09595" },
@@ -56,6 +57,8 @@ function KlausurDetail() {
   const [aiFillLoading, setAiFillLoading] = useState<number | null>(null);
   const [aiFillError, setAiFillError] = useState<string | null>(null);
   const [showFlashcards, setShowFlashcards] = useState<Record<number, boolean>>({});
+  const [showAllCards, setShowAllCards] = useState(false);
+  const [allCardsLoading, setAllCardsLoading] = useState(false);
   const [fehlerInput, setFehlerInput] = useState("");
   const chatFn = useServerFn(chat);
 
@@ -189,6 +192,39 @@ Antworte NUR als JSON: {"cards":[{"question":"...","answer":"..."}]}. Mische Ver
       setAiFillError(e instanceof Error ? e.message : "Flashcards konnten nicht erstellt werden");
     } finally {
       setAiFillLoading(null);
+    }
+  }
+
+  async function generateAllFlashcards() {
+    setAllCardsLoading(true);
+    setAiFillError(null);
+    try {
+      const themenText = klausur!.themen
+        .map((t) => `• ${t.name} [Prio:${t.prioritaet}]\n  KeyPoints: ${t.keypoints || "—"}\n  Verwechslungen: ${t.verwechslungen ?? "—"}\n  Offene Fragen: ${t.offeneFragen || "—"}`)
+        .join("\n");
+      const prompt = `Erstelle 15-20 Flashcards für die GANZE Klausur "${klausur!.title}" (${klausur!.fach}).
+Decke ALLE Themen ab, gewichte nach Priorität (mehr Karten für hoch).
+
+THEMEN:
+${themenText}
+
+${klausur!.summary ? `KONTEXT-SUMMARY:\n${klausur!.summary.slice(0, 1500)}` : ""}
+${(klausur!.fehler ?? []).length ? `BEKANNTE FEHLER (unbedingt Karten dazu):\n${(klausur!.fehler ?? []).map((f) => `- ${f.text}`).join("\n")}` : ""}
+
+Mische: Definitionen, "Was ist der Unterschied…", typische Klausurfragen, und gezielte Karten zu Verwechslungen/Fehlern.
+Antworte AUSSCHLIESSLICH als JSON: {"cards":[{"question":"...","answer":"..."}]}`;
+      const res = await chatFn({
+        data: { systemPrompt, messages: [{ role: "user", content: prompt }], files, model: "google/gemini-2.5-flash" },
+      });
+      if (res.error) { setAiFillError(res.error); return; }
+      const clean = res.text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean) as { cards: Flashcard[] };
+      sync({ ...klausur!, flashcards: parsed.cards || [] });
+      setShowAllCards(true);
+    } catch (e) {
+      setAiFillError(e instanceof Error ? e.message : "Flashcards konnten nicht erstellt werden");
+    } finally {
+      setAllCardsLoading(false);
     }
   }
 
@@ -456,6 +492,50 @@ Sei präzise und prüfungsrelevant.`;
                   </button>
                 </div>
               </div>
+            )}
+          </div>
+        </div>
+
+        {/* FLASHCARDS (ganze Klausur) */}
+        <div id="sec-flashcards" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+          <SectionTitle icon="🎴" label="Flashcards — ganze Klausur" color={C.purpleLight} />
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 18 }}>
+            <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 12 }}>
+              KI erstellt 15–20 Karten quer über alle Themen, inkl. deiner Fehler aus dem Journal.
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+              <button
+                style={{ ...s.btnP, width: "auto", padding: "8px 22px" }}
+                onClick={() => void generateAllFlashcards()}
+                disabled={allCardsLoading || klausur.themen.length === 0}
+              >
+                {allCardsLoading ? "…" : (klausur.flashcards?.length ? "🔄 Neu generieren" : "✦ KI-Flashcards erstellen")}
+              </button>
+              {klausur.flashcards && klausur.flashcards.length > 0 && (
+                <>
+                  <button
+                    style={{ ...s.smallBtn(C.purple), padding: "8px 16px", fontSize: 12 }}
+                    onClick={() => setShowAllCards((v) => !v)}
+                  >
+                    {showAllCards ? "Einklappen" : `Üben (${klausur.flashcards.length})`}
+                  </button>
+                  <button
+                    style={{ ...s.smallBtn(C.red), padding: "8px 16px", fontSize: 12 }}
+                    onClick={() => {
+                      if (!confirm("Alle Klausur-Flashcards löschen?")) return;
+                      sync({ ...klausur, flashcards: [] });
+                    }}
+                  >
+                    Löschen
+                  </button>
+                </>
+              )}
+            </div>
+            {klausur.themen.length === 0 && (
+              <div style={{ fontSize: 12, color: C.textDim, fontStyle: "italic" }}>Zuerst Themen anlegen.</div>
+            )}
+            {klausur.flashcards && klausur.flashcards.length > 0 && showAllCards && (
+              <FlashcardView cards={klausur.flashcards} onClose={() => setShowAllCards(false)} />
             )}
           </div>
         </div>
