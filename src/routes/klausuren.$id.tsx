@@ -496,6 +496,50 @@ Sei präzise und prüfungsrelevant.`;
           </div>
         </div>
 
+        {/* FLASHCARDS (ganze Klausur) */}
+        <div id="sec-flashcards" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+          <SectionTitle icon="🎴" label="Flashcards — ganze Klausur" color={C.purpleLight} />
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 18 }}>
+            <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 12 }}>
+              KI erstellt 15–20 Karten quer über alle Themen, inkl. deiner Fehler aus dem Journal.
+            </div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
+              <button
+                style={{ ...s.btnP, width: "auto", padding: "8px 22px" }}
+                onClick={() => void generateAllFlashcards()}
+                disabled={allCardsLoading || klausur.themen.length === 0}
+              >
+                {allCardsLoading ? "…" : (klausur.flashcards?.length ? "🔄 Neu generieren" : "✦ KI-Flashcards erstellen")}
+              </button>
+              {klausur.flashcards && klausur.flashcards.length > 0 && (
+                <>
+                  <button
+                    style={{ ...s.smallBtn(C.purple), padding: "8px 16px", fontSize: 12 }}
+                    onClick={() => setShowAllCards((v) => !v)}
+                  >
+                    {showAllCards ? "Einklappen" : `Üben (${klausur.flashcards.length})`}
+                  </button>
+                  <button
+                    style={{ ...s.smallBtn(C.red), padding: "8px 16px", fontSize: 12 }}
+                    onClick={() => {
+                      if (!confirm("Alle Klausur-Flashcards löschen?")) return;
+                      sync({ ...klausur, flashcards: [] });
+                    }}
+                  >
+                    Löschen
+                  </button>
+                </>
+              )}
+            </div>
+            {klausur.themen.length === 0 && (
+              <div style={{ fontSize: 12, color: C.textDim, fontStyle: "italic" }}>Zuerst Themen anlegen.</div>
+            )}
+            {klausur.flashcards && klausur.flashcards.length > 0 && showAllCards && (
+              <FlashcardView cards={klausur.flashcards} onClose={() => setShowAllCards(false)} />
+            )}
+          </div>
+        </div>
+
         {/* PRÜFUNG */}
         <div id="sec-pruefung" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
         <SectionTitle icon="📝" label="Probeklausur" color={"#E05A2B"} />
