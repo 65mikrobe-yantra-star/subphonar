@@ -471,6 +471,54 @@ Sei präzise und prüfungsrelevant.`;
         <ErklaerbaerTab klausur={klausur} systemPrompt={systemPrompt} contextFiles={files} update={sync} />
         </div>
 
+        {/* FEHLER-JOURNAL */}
+        <div id="sec-fehler" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+          <SectionTitle icon="🧠" label="Fehler-Journal — was war wichtig, wo lagen Fehler?" color={"#F09595"} />
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 18 }}>
+            <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 10 }}>
+              Halte fest, was du oft falsch machst, was du dir merken willst, oder Erkenntnisse aus Probeklausuren. Die KI nutzt das in jeder Antwort.
+            </div>
+            <textarea
+              style={{ ...s.ta, minHeight: 70 }}
+              placeholder="z.B. Bei Bilanz immer Aktiv = Passiv prüfen. Kommafehler in Englisch-Aufsätzen…"
+              value={fehlerInput}
+              onChange={(e) => setFehlerInput(e.target.value)}
+            />
+            <button
+              style={{ ...s.btnP, width: "auto", padding: "8px 22px", marginTop: 4 }}
+              onClick={() => {
+                const txt = fehlerInput.trim();
+                if (!txt) return;
+                const entry = { id: Date.now(), date: new Date().toISOString(), text: txt };
+                sync({ ...klausur, fehler: [entry, ...(klausur.fehler ?? [])] });
+                setFehlerInput("");
+              }}
+            >
+              + Festhalten
+            </button>
+            <div style={{ marginTop: 16, display: "grid", gap: 8 }}>
+              {(klausur.fehler ?? []).length === 0 && (
+                <div style={{ fontSize: 12, color: C.textDim, fontStyle: "italic" }}>Noch keine Einträge.</div>
+              )}
+              {(klausur.fehler ?? []).map((f) => (
+                <div key={f.id} style={{ background: C.surfaceHigh, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: C.textDim, marginBottom: 4 }}>{formatDate(f.date)}</div>
+                    <div style={{ fontSize: 13, color: C.text, whiteSpace: "pre-wrap", lineHeight: 1.5 }}>{f.text}</div>
+                  </div>
+                  <button
+                    style={{ ...s.smallBtn(C.red), padding: "3px 8px", fontSize: 10 }}
+                    onClick={() => sync({ ...klausur, fehler: (klausur.fehler ?? []).filter((x) => x.id !== f.id) })}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+
         {/* AI Panel */}
         <AiPanel show={aiOpen} onClose={() => setAiOpen(false)} systemPrompt={systemPrompt} files={files} extraContext={`Klausur: ${klausur.title}`} />
 
