@@ -97,7 +97,8 @@ function KlausurDetail() {
 
   const lastExam = (klausur.exams ?? [])[0];
   const recentErklaer = (klausur.erklaerungen ?? []).slice(0, 3).map((e) => `F: ${e.frage}`).join(" | ");
-  const systemPrompt = `Du bist Lern-Coach für Klausur "${klausur.title}" (${klausur.fach}, ${formatDate(klausur.datum)}).
+  const systemPrompt = `${PERSONA_PREFIX}
+Du bist Johannas Lern-Coach für Klausur "${klausur.title}" (${klausur.fach}, ${formatDate(klausur.datum)}).
 Probleme des Schülers: ${klausur.probleme || "—"}
 Bisherige Lösungsansätze: ${klausur.loesungen || "—"}
 
