@@ -59,7 +59,8 @@ function Dashboard() {
   const openTodos = useMemo(() => todos.filter((t) => t.status !== "done"), [todos]);
   const overdueTodos = useMemo(() => openTodos.filter((t) => isOverdue(t.due)), [openTodos]);
 
-  const systemPrompt = `Du bist Subphonar, der persönliche Lern-Coach des Schülers. Aktueller Stand: Gesamtschnitt ${
+  const systemPrompt = `${PERSONA_PREFIX}
+Du bist Subphonar, Johannas persönlicher Lern-Coach. Aktueller Stand: Gesamtschnitt ${
     gesamtschnitt ? gesamtschnitt.toFixed(2) : "—"
   }. Anstehende Klausuren: ${
     upcomingKlausuren.map((k) => `${k.title} (${k.fach}, ${formatDate(k.datum)})`).join("; ") || "keine"
