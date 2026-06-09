@@ -20,7 +20,7 @@ export const Route = createFileRoute("/klausuren/$id")({
   component: KlausurDetail,
 });
 
-type SectionId = "dateien" | "themen" | "mindmap" | "summary" | "pruefung" | "erklaer";
+type SectionId = "dateien" | "themen" | "mindmap" | "summary" | "pruefung" | "erklaer" | "fehler";
 
 const SECTIONS: { id: SectionId; label: string; icon: string; color: string }[] = [
   { id: "dateien", label: "Dateien", icon: "📎", color: C.amber },
@@ -29,6 +29,7 @@ const SECTIONS: { id: SectionId; label: string; icon: string; color: string }[] 
   { id: "summary", label: "Summary", icon: "📄", color: C.purpleLight },
   { id: "pruefung", label: "Prüfung", icon: "📝", color: "#E05A2B" },
   { id: "erklaer", label: "Erklärbär", icon: "🧑‍🏫", color: C.amber },
+  { id: "fehler", label: "Fehler-Journal", icon: "🧠", color: "#F09595" },
 ];
 
 function scrollToSection(id: SectionId) {
