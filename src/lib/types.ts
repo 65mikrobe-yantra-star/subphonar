@@ -86,6 +86,8 @@ export type Klausur = {
   summary?: string;
   /** Thema-spezifische Flashcards */
   themaFlashcards?: Record<number, Flashcard[]>;
+  /** Fehler-Journal: was lief schief, was hab ich gelernt */
+  fehler?: { id: number; date: string; text: string }[];
 };
 
 export type Todo = {
