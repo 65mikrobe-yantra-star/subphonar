@@ -113,6 +113,7 @@ ${klausur.themen.map((t) => `• ${t.name} [Prio:${t.prioritaet}, Zeit:${t.zeit 
 ${klausur.summary ? `EXECUTIVE SUMMARY (bereits erstellt):\n${klausur.summary.slice(0, 800)}\n` : ""}
 ${lastExam ? `LETZTE PROBEKLAUSUR (${lastExam.schwierigkeit}): ${lastExam.done ? `${lastExam.gesamtpunkte}/${lastExam.maxpunkte} P. — ${lastExam.gesamtfeedback?.slice(0, 300) ?? ""}` : "noch nicht bewertet"}` : ""}
 ${recentErklaer ? `KÜRZLICHE ERKLÄRBÄR-FRAGEN: ${recentErklaer}` : ""}
+${(klausur.fehler ?? []).length ? `FEHLER-JOURNAL (was Johanna oft falsch macht / merken will):\n${(klausur.fehler ?? []).slice(0, 8).map((f) => `• ${f.text}`).join("\n")}` : ""}
 ${files.length ? `HOCHGELADENE DATEIEN: ${files.map((f) => f.name).join(", ")}` : ""}
 
 Antworte präzise, strukturiert, auf Deutsch. Beziehe dich konkret auf die Daten oben — nutze sie, statt allgemeine Erklärungen zu geben.`;
