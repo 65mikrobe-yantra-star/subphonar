@@ -3,7 +3,7 @@ import { useMemo, useState, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppNav } from "@/components/AppNav";
 import { AiPanel } from "@/components/AiPanel";
-import { APP_NAME, C, FAECHER_DEFAULT, HARVEY_QUOTES } from "@/lib/constants";
+import { APP_NAME, C, FAECHER_DEFAULT, HARVEY_QUOTES, PERSONA_PREFIX } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
 import { avg, formatDate, isOverdue, punkte2Note } from "@/lib/helpers";
