@@ -8,7 +8,7 @@ import { FlashcardView } from "@/components/FlashcardView";
 import { MindmapCanvas } from "@/components/MindmapCanvas";
 import { PruefungsTab } from "@/components/PruefungsTab";
 import { ErklaerbaerTab } from "@/components/ErklaerbaerTab";
-import { APP_NAME, C, PRIORITY_COLORS } from "@/lib/constants";
+import { APP_NAME, C, PERSONA_PREFIX, PRIORITY_COLORS } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
 import { formatDate } from "@/lib/helpers";
@@ -20,7 +20,7 @@ export const Route = createFileRoute("/klausuren/$id")({
   component: KlausurDetail,
 });
 
-type SectionId = "dateien" | "themen" | "mindmap" | "summary" | "pruefung" | "erklaer";
+type SectionId = "dateien" | "themen" | "mindmap" | "summary" | "pruefung" | "erklaer" | "fehler";
 
 const SECTIONS: { id: SectionId; label: string; icon: string; color: string }[] = [
   { id: "dateien", label: "Dateien", icon: "📎", color: C.amber },
@@ -29,6 +29,7 @@ const SECTIONS: { id: SectionId; label: string; icon: string; color: string }[] 
   { id: "summary", label: "Summary", icon: "📄", color: C.purpleLight },
   { id: "pruefung", label: "Prüfung", icon: "📝", color: "#E05A2B" },
   { id: "erklaer", label: "Erklärbär", icon: "🧑‍🏫", color: C.amber },
+  { id: "fehler", label: "Fehler-Journal", icon: "🧠", color: "#F09595" },
 ];
 
 function scrollToSection(id: SectionId) {
@@ -55,6 +56,7 @@ function KlausurDetail() {
   const [aiFillLoading, setAiFillLoading] = useState<number | null>(null);
   const [aiFillError, setAiFillError] = useState<string | null>(null);
   const [showFlashcards, setShowFlashcards] = useState<Record<number, boolean>>({});
+  const [fehlerInput, setFehlerInput] = useState("");
   const chatFn = useServerFn(chat);
 
   if (!klausur) {
@@ -97,7 +99,8 @@ function KlausurDetail() {
 
   const lastExam = (klausur.exams ?? [])[0];
   const recentErklaer = (klausur.erklaerungen ?? []).slice(0, 3).map((e) => `F: ${e.frage}`).join(" | ");
-  const systemPrompt = `Du bist Lern-Coach für Klausur "${klausur.title}" (${klausur.fach}, ${formatDate(klausur.datum)}).
+  const systemPrompt = `${PERSONA_PREFIX}
+Du bist Johannas Lern-Coach für Klausur "${klausur.title}" (${klausur.fach}, ${formatDate(klausur.datum)}).
 Probleme des Schülers: ${klausur.probleme || "—"}
 Bisherige Lösungsansätze: ${klausur.loesungen || "—"}
 
@@ -110,6 +113,7 @@ ${klausur.themen.map((t) => `• ${t.name} [Prio:${t.prioritaet}, Zeit:${t.zeit 
 ${klausur.summary ? `EXECUTIVE SUMMARY (bereits erstellt):\n${klausur.summary.slice(0, 800)}\n` : ""}
 ${lastExam ? `LETZTE PROBEKLAUSUR (${lastExam.schwierigkeit}): ${lastExam.done ? `${lastExam.gesamtpunkte}/${lastExam.maxpunkte} P. — ${lastExam.gesamtfeedback?.slice(0, 300) ?? ""}` : "noch nicht bewertet"}` : ""}
 ${recentErklaer ? `KÜRZLICHE ERKLÄRBÄR-FRAGEN: ${recentErklaer}` : ""}
+${(klausur.fehler ?? []).length ? `FEHLER-JOURNAL (was Johanna oft falsch macht / merken will):\n${(klausur.fehler ?? []).slice(0, 8).map((f) => `• ${f.text}`).join("\n")}` : ""}
 ${files.length ? `HOCHGELADENE DATEIEN: ${files.map((f) => f.name).join(", ")}` : ""}
 
 Antworte präzise, strukturiert, auf Deutsch. Beziehe dich konkret auf die Daten oben — nutze sie, statt allgemeine Erklärungen zu geben.`;
@@ -467,6 +471,54 @@ Sei präzise und prüfungsrelevant.`;
         <SectionTitle icon="🧑‍🏫" label="Erklärbär" color={C.amber} />
         <ErklaerbaerTab klausur={klausur} systemPrompt={systemPrompt} contextFiles={files} update={sync} />
         </div>
+
+        {/* FEHLER-JOURNAL */}
+        <div id="sec-fehler" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
+          <SectionTitle icon="🧠" label="Fehler-Journal — was war wichtig, wo lagen Fehler?" color={"#F09595"} />
+          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 18 }}>
+            <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 10 }}>
+              Halte fest, was du oft falsch machst, was du dir merken willst, oder Erkenntnisse aus Probeklausuren. Die KI nutzt das in jeder Antwort.
+            </div>
+            <textarea
+              style={{ ...s.ta, minHeight: 70 }}
+              placeholder="z.B. Bei Bilanz immer Aktiv = Passiv prüfen. Kommafehler in Englisch-Aufsätzen…"
+              value={fehlerInput}
+              onChange={(e) => setFehlerInput(e.target.value)}
+            />
+            <button
+              style={{ ...s.btnP, width: "auto", padding: "8px 22px", marginTop: 4 }}
+              onClick={() => {
+                const txt = fehlerInput.trim();
+                if (!txt) return;
+                const entry = { id: Date.now(), date: new Date().toISOString(), text: txt };
+                sync({ ...klausur, fehler: [entry, ...(klausur.fehler ?? [])] });
+                setFehlerInput("");
+              }}
+            >
+              + Festhalten
+            </button>
+            <div style={{ marginTop: 16, display: "grid", gap: 8 }}>
+              {(klausur.fehler ?? []).length === 0 && (
+                <div style={{ fontSize: 12, color: C.textDim, fontStyle: "italic" }}>Noch keine Einträge.</div>
+              )}
+              {(klausur.fehler ?? []).map((f) => (
+                <div key={f.id} style={{ background: C.surfaceHigh, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 10, color: C.textDim, marginBottom: 4 }}>{formatDate(f.date)}</div>
+                    <div style={{ fontSize: 13, color: C.text, whiteSpace: "pre-wrap", lineHeight: 1.5 }}>{f.text}</div>
+                  </div>
+                  <button
+                    style={{ ...s.smallBtn(C.red), padding: "3px 8px", fontSize: 10 }}
+                    onClick={() => sync({ ...klausur, fehler: (klausur.fehler ?? []).filter((x) => x.id !== f.id) })}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
 
         {/* AI Panel */}
         <AiPanel show={aiOpen} onClose={() => setAiOpen(false)} systemPrompt={systemPrompt} files={files} extraContext={`Klausur: ${klausur.title}`} />

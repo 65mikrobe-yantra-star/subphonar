@@ -3,7 +3,8 @@ import { useMemo, useState, useEffect } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppNav } from "@/components/AppNav";
 import { AiPanel } from "@/components/AiPanel";
-import { APP_NAME, C, FAECHER_DEFAULT, HARVEY_QUOTES } from "@/lib/constants";
+import { DailyBrief } from "@/components/DailyBrief";
+import { APP_NAME, C, FAECHER_DEFAULT, HARVEY_QUOTES, PERSONA_PREFIX } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
 import { avg, formatDate, isOverdue, punkte2Note } from "@/lib/helpers";
@@ -59,7 +60,8 @@ function Dashboard() {
   const openTodos = useMemo(() => todos.filter((t) => t.status !== "done"), [todos]);
   const overdueTodos = useMemo(() => openTodos.filter((t) => isOverdue(t.due)), [openTodos]);
 
-  const systemPrompt = `Du bist Subphonar, der persönliche Lern-Coach des Schülers. Aktueller Stand: Gesamtschnitt ${
+  const systemPrompt = `${PERSONA_PREFIX}
+Du bist Subphonar, Johannas persönlicher Lern-Coach. Aktueller Stand: Gesamtschnitt ${
     gesamtschnitt ? gesamtschnitt.toFixed(2) : "—"
   }. Anstehende Klausuren: ${
     upcomingKlausuren.map((k) => `${k.title} (${k.fach}, ${formatDate(k.datum)})`).join("; ") || "keine"
@@ -138,6 +140,9 @@ Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"
           </div>
           <div style={{ fontSize: 12, color: C.textMuted }}>— Harvey Specter · {quote.context}</div>
         </div>
+
+        {/* Daily Brief: 5 Englisch-Vokabeln + 1 Finanz-Thema */}
+        <DailyBrief />
 
         {/* KI Aktionen */}
         <div style={{ background: C.surface, border: `1px solid ${C.purple}33`, borderRadius: 12, padding: 16, marginBottom: 24 }}>
