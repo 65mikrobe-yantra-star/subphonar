@@ -195,6 +195,39 @@ Antworte NUR als JSON: {"cards":[{"question":"...","answer":"..."}]}. Mische Ver
     }
   }
 
+  async function generateAllFlashcards() {
+    setAllCardsLoading(true);
+    setAiFillError(null);
+    try {
+      const themenText = klausur!.themen
+        .map((t) => `• ${t.name} [Prio:${t.prioritaet}]\n  KeyPoints: ${t.keypoints || "—"}\n  Verwechslungen: ${t.verwechslungen ?? "—"}\n  Offene Fragen: ${t.offeneFragen || "—"}`)
+        .join("\n");
+      const prompt = `Erstelle 15-20 Flashcards für die GANZE Klausur "${klausur!.title}" (${klausur!.fach}).
+Decke ALLE Themen ab, gewichte nach Priorität (mehr Karten für hoch).
+
+THEMEN:
+${themenText}
+
+${klausur!.summary ? `KONTEXT-SUMMARY:\n${klausur!.summary.slice(0, 1500)}` : ""}
+${(klausur!.fehler ?? []).length ? `BEKANNTE FEHLER (unbedingt Karten dazu):\n${(klausur!.fehler ?? []).map((f) => `- ${f.text}`).join("\n")}` : ""}
+
+Mische: Definitionen, "Was ist der Unterschied…", typische Klausurfragen, und gezielte Karten zu Verwechslungen/Fehlern.
+Antworte AUSSCHLIESSLICH als JSON: {"cards":[{"question":"...","answer":"..."}]}`;
+      const res = await chatFn({
+        data: { systemPrompt, messages: [{ role: "user", content: prompt }], files, model: "google/gemini-2.5-flash" },
+      });
+      if (res.error) { setAiFillError(res.error); return; }
+      const clean = res.text.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(clean) as { cards: Flashcard[] };
+      sync({ ...klausur!, flashcards: parsed.cards || [] });
+      setShowAllCards(true);
+    } catch (e) {
+      setAiFillError(e instanceof Error ? e.message : "Flashcards konnten nicht erstellt werden");
+    } finally {
+      setAllCardsLoading(false);
+    }
+  }
+
   async function generateSummary() {
     setSummaryLoading(true);
     try {
