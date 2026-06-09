@@ -141,6 +141,9 @@ Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"
           <div style={{ fontSize: 12, color: C.textMuted }}>— Harvey Specter · {quote.context}</div>
         </div>
 
+        {/* Daily Brief: 5 Englisch-Vokabeln + 1 Finanz-Thema */}
+        <DailyBrief />
+
         {/* KI Aktionen */}
         <div style={{ background: C.surface, border: `1px solid ${C.purple}33`, borderRadius: 12, padding: 16, marginBottom: 24 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, flexWrap: "wrap" }}>
