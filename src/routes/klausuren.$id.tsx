@@ -8,7 +8,7 @@ import { FlashcardView } from "@/components/FlashcardView";
 import { MindmapCanvas } from "@/components/MindmapCanvas";
 import { PruefungsTab } from "@/components/PruefungsTab";
 import { ErklaerbaerTab } from "@/components/ErklaerbaerTab";
-import { APP_NAME, C, PRIORITY_COLORS } from "@/lib/constants";
+import { APP_NAME, C, PERSONA_PREFIX, PRIORITY_COLORS } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
 import { formatDate } from "@/lib/helpers";
