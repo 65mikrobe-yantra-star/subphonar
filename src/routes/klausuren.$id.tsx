@@ -57,6 +57,8 @@ function KlausurDetail() {
   const [aiFillLoading, setAiFillLoading] = useState<number | null>(null);
   const [aiFillError, setAiFillError] = useState<string | null>(null);
   const [showFlashcards, setShowFlashcards] = useState<Record<number, boolean>>({});
+  const [showAllCards, setShowAllCards] = useState(false);
+  const [allCardsLoading, setAllCardsLoading] = useState(false);
   const [fehlerInput, setFehlerInput] = useState("");
   const chatFn = useServerFn(chat);
 
