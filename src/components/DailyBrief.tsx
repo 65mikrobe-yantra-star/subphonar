@@ -27,14 +27,14 @@ Liefere AUSSCHLIESSLICH valides JSON in folgendem Schema (kein Markdown, kein Fl
 {
   "vocab": [
     {"word":"…","ipa":"…","translation":"…","example":"…"},
-    … insgesamt 5 hochkarätige, anspruchsvolle Englisch-Vokabeln auf C1/C2-Niveau (keine Anfänger-Wörter, gerne idiomatisch oder Business/Akademisch).
+    … insgesamt 5 nützliche Englisch-Vokabeln auf solidem B1/B2-Schul-Niveau, die Johanna in Klausuren / Aufsätzen / mündlichen Prüfungen tatsächlich verwenden kann (Verben, Adjektive, Übergangswörter, gängige Kollokationen — KEINE seltenen Spezialbegriffe).
   ],
   "finance": {
     "topic":"… (z.B. ROI, EBITDA, Share Buyback, Working Capital, P/E-Ratio, Liquiditätsgrad, Cashflow, Leverage Effekt)",
     "explanation":"klare, kompakte Erklärung in 3-5 Sätzen auf Deutsch, mit Mini-Beispiel + Formel falls passend."
   }
 }
-Wichtig: jeden Tag andere Vokabeln und ein anderes Finanz-/Business-Thema, nicht wiederholen.`;
+Wichtig: jeden Tag andere Vokabeln und ein anderes Finanz-/Business-Thema, nicht wiederholen. Beispielsätze sollen schultauglich und alltagsnah sein.`;
       const res = await chatFn({
         data: {
           systemPrompt: PERSONA_PREFIX,
