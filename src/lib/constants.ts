@@ -52,7 +52,7 @@ export const C = {
   redDim: "#A32D2D22",
   bg: "#0f1018",
   surface: "#191a25",
-  surfaceHigh: "#23243240",
+  surfaceHigh: "#232432",
   border: "#33344a",
   borderLight: "#444560",
   text: "#f1f1f5",
