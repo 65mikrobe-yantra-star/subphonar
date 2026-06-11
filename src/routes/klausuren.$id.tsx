@@ -458,7 +458,7 @@ Sei präzise und prüfungsrelevant.`;
             <MindmapCanvas
               strokes={klausur.mindmap ?? []}
               onChange={(strokes: MindmapStroke[]) => sync({ ...klausur, mindmap: strokes })}
-              height={420}
+              height={640}
             />
           </div>
         </div>

@@ -3,7 +3,8 @@ import type { Fach, Prioritaet } from "./types";
 export const APP_NAME = "Subphonar";
 
 /** Persönlicher Coach-Vorsatz für alle KI-Aufrufe. Die Nutzerin heißt Johanna. */
-export const PERSONA_PREFIX = `Du sprichst die Nutzerin IMMER persönlich mit "Johanna" an (z.B. "Johanna, …"). Sei warm, klar, präzise. Antworte auf Deutsch.`;
+export const PERSONA_PREFIX = `Du sprichst die Nutzerin IMMER persönlich mit "Johanna" an (z.B. "Johanna, …"). Sei warm, klar, präzise. Antworte auf Deutsch.
+WICHTIG: Antworte KNAPP und PRÄZISE — maximal 4–6 Sätze oder kompakte Bullet-Liste. Keine Floskeln, keine Wiederholung der Frage, keine Disclaimer. Nur dann ausführlicher, wenn Johanna ausdrücklich "ausführlich", "lang" oder "im Detail" verlangt.`;
 
 export const HARVEY_QUOTES = [
   { quote: "I don't play the odds, I play the man.", context: "Über Strategie" },
