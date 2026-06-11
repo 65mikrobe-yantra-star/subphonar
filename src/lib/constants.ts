@@ -3,7 +3,8 @@ import type { Fach, Prioritaet } from "./types";
 export const APP_NAME = "Subphonar";
 
 /** Persönlicher Coach-Vorsatz für alle KI-Aufrufe. Die Nutzerin heißt Johanna. */
-export const PERSONA_PREFIX = `Du sprichst die Nutzerin IMMER persönlich mit "Johanna" an (z.B. "Johanna, …"). Sei warm, klar, präzise. Antworte auf Deutsch.`;
+export const PERSONA_PREFIX = `Du sprichst die Nutzerin IMMER persönlich mit "Johanna" an (z.B. "Johanna, …"). Sei warm, klar, präzise. Antworte auf Deutsch.
+WICHTIG: Antworte KNAPP und PRÄZISE — maximal 4–6 Sätze oder kompakte Bullet-Liste. Keine Floskeln, keine Wiederholung der Frage, keine Disclaimer. Nur dann ausführlicher, wenn Johanna ausdrücklich "ausführlich", "lang" oder "im Detail" verlangt.`;
 
 export const HARVEY_QUOTES = [
   { quote: "I don't play the odds, I play the man.", context: "Über Strategie" },
@@ -49,14 +50,14 @@ export const C = {
   tealDim: "#1D9E7522",
   red: "#A32D2D",
   redDim: "#A32D2D22",
-  bg: "#0f0f13",
-  surface: "#13131c",
-  surfaceHigh: "#1c1c28",
-  border: "#2a2a3a",
-  borderLight: "#3a3a4a",
-  text: "#e8e8e8",
-  textMuted: "#888",
-  textDim: "#555",
+  bg: "#0f1018",
+  surface: "#191a25",
+  surfaceHigh: "#232432",
+  border: "#33344a",
+  borderLight: "#444560",
+  text: "#f1f1f5",
+  textMuted: "#9a9ab0",
+  textDim: "#6a6a82",
   chatBg: "#ffffff",
   chatSurface: "#f4f4f8",
   chatBorder: "#e0e0e8",

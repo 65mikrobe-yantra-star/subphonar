@@ -10,6 +10,7 @@ import { useLocalStorage } from "@/lib/storage";
 import { avg, formatDate, isOverdue, punkte2Note } from "@/lib/helpers";
 import { chat } from "@/lib/ai.functions";
 import type { Fach, Klausur, Todo } from "@/lib/types";
+import harveyBg from "@/assets/harvey-bg.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -70,11 +71,19 @@ Du bist Subphonar, Johannas persönlicher Lern-Coach. Aktueller Stand: Gesamtsch
   async function generatePlan() {
     setPlanLoading(true);
     try {
-      const prompt = `Erstelle einen konkreten Lern-Tagesplan für HEUTE.
+      const now = new Date();
+      const startHour = Math.max(14, now.getHours() + (now.getMinutes() > 30 ? 1 : 0));
+      const startStr = `${String(startHour).padStart(2, "0")}:${now.getMinutes() > 30 ? "00" : "30"}`;
+      const prompt = `Erstelle einen konkreten Lern-Tagesplan für HEUTE, der erst um ${startStr} Uhr startet (nicht früher) und bis ca. 22:00 läuft.
 Klausuren: ${upcomingKlausuren.map((k) => `${k.title} in ${Math.ceil((new Date(k.datum).getTime() - Date.now()) / 86400000)} Tagen, Themen: ${k.themen.map((t) => `${t.name} [P:${t.prioritaet}]`).join(", ")}`).join(" | ") || "keine"}
 Offene Todos: ${openTodos.slice(0, 10).map((t) => `${t.title} [${t.prioritaet}]${t.due ? ` bis ${t.due}` : ""}`).join("; ") || "keine"}
 
-Antworte als kompakter Tagesplan mit 4-6 Time-Blocks (z.B. "09:00–10:30 …"), priorisiert nach Dringlichkeit. Markdown, kurz, motivierend. Schließe mit einem einzigen Harvey-Specter-style Push-Satz.`;
+Regeln:
+- 4–6 Time-Blocks im Format "HH:MM–HH:MM Thema/Aufgabe — kurzer Fokus".
+- Lernblöcke max. 60–75 min, dazwischen kurze Pausen.
+- Baue VERPFLICHTEND einen Sport-Block ein (45–60 min: Laufen, Krafttraining, Yoga oder Stretching) — wähle passend zur Tageszeit.
+- Eine kurze Abend-Routine (Wiederholung / Karteikarten) am Schluss.
+- Markdown, sehr kompakt, nur die Blocks + 1 abschließender Harvey-Specter-Push-Satz. Keine langen Einleitungen.`;
       const res = await chatFn({ data: { systemPrompt, messages: [{ role: "user", content: prompt }], files: [], model: "google/gemini-2.5-flash" } });
       setPlan(res.error ? `⚠️ ${res.error}` : res.text);
     } finally {
@@ -114,34 +123,46 @@ Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"
     <div style={s.app}>
       <AppNav />
       <div style={s.main(aiOpen)}>
-        {/* Hero */}
+        {/* Hero with Harvey background */}
         <div
           style={{
-            background: `linear-gradient(135deg, ${C.purple}22, ${C.purpleDim})`,
-            border: `1px solid ${C.purple}44`,
-            borderRadius: 16,
-            padding: "28px 32px",
-            marginBottom: 18,
+            position: "relative",
+            backgroundImage: `linear-gradient(115deg, rgba(15,15,19,0.92) 0%, rgba(15,15,19,0.7) 45%, rgba(127,119,221,0.32) 100%), url(${harveyBg})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center right",
+            border: `1px solid ${C.purple}55`,
+            borderRadius: 18,
+            padding: "32px 34px",
+            marginBottom: 20,
+            boxShadow: `0 12px 40px -12px ${C.purple}55, inset 0 1px 0 rgba(255,255,255,0.05)`,
+            overflow: "hidden",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
-            <div style={{ fontSize: 10, color: C.purpleLight, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-              ✦ Willkommen zurück
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 10, gap: 8 }}>
+            <div style={{ fontSize: 10, color: C.purpleLight, letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 600 }}>
+              ✦ Willkommen zurück, Johanna
             </div>
             <button
-              style={{ ...s.smallBtn(C.purple), marginLeft: "auto", padding: "5px 12px", fontSize: 11 }}
+              style={{ ...s.smallBtn(C.amber), marginLeft: "auto", padding: "5px 11px", fontSize: 11 }}
+              onClick={() => setQuoteIdx((i) => (i + 1) % HARVEY_QUOTES.length)}
+              title="Neues Zitat"
+            >
+              🔄
+            </button>
+            <button
+              style={{ ...s.smallBtn(C.purple), padding: "5px 12px", fontSize: 11 }}
               onClick={() => setAiOpen(!aiOpen)}
             >
               ✦ KI-Chat
             </button>
           </div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: C.text, lineHeight: 1.4, marginBottom: 6, fontStyle: "italic" }}>
+          <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", lineHeight: 1.4, marginBottom: 6, fontStyle: "italic", textShadow: "0 2px 12px rgba(0,0,0,0.6)", maxWidth: "78%" }}>
             „{quote.quote}"
           </div>
-          <div style={{ fontSize: 12, color: C.textMuted }}>— Harvey Specter · {quote.context}</div>
+          <div style={{ fontSize: 12, color: C.purpleLight, textShadow: "0 1px 6px rgba(0,0,0,0.7)" }}>— Harvey Specter · {quote.context}</div>
         </div>
 
-        {/* Daily Brief: 5 Englisch-Vokabeln + 1 Finanz-Thema */}
+        {/* Daily Brief: 5 Englisch-Vokabeln + 1 Finanz-Thema (mit 🔄 Wechsel-Button) */}
         <DailyBrief />
 
         {/* KI Aktionen */}
