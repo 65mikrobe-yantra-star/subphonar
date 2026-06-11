@@ -133,25 +133,44 @@ Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"
             marginBottom: 18,
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
-            <div style={{ fontSize: 10, color: C.purpleLight, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-              ✦ Willkommen zurück
+        {/* Hero with Harvey background */}
+        <div
+          style={{
+            position: "relative",
+            backgroundImage: `linear-gradient(115deg, rgba(15,15,19,0.92) 0%, rgba(15,15,19,0.72) 45%, rgba(127,119,221,0.35) 100%), url(${harveyBg})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center right",
+            border: `1px solid ${C.purple}55`,
+            borderRadius: 18,
+            padding: "32px 34px",
+            marginBottom: 20,
+            boxShadow: `0 12px 40px -12px ${C.purple}55, inset 0 1px 0 rgba(255,255,255,0.05)`,
+            overflow: "hidden",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", marginBottom: 10, gap: 8 }}>
+            <div style={{ fontSize: 10, color: C.purpleLight, letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 600 }}>
+              ✦ Willkommen zurück, Johanna
             </div>
             <button
-              style={{ ...s.smallBtn(C.purple), marginLeft: "auto", padding: "5px 12px", fontSize: 11 }}
+              style={{ ...s.smallBtn(C.amber), marginLeft: "auto", padding: "5px 11px", fontSize: 11 }}
+              onClick={() => setQuoteIdx((i) => (i + 1) % HARVEY_QUOTES.length)}
+              title="Neues Zitat"
+            >
+              🔄
+            </button>
+            <button
+              style={{ ...s.smallBtn(C.purple), padding: "5px 12px", fontSize: 11 }}
               onClick={() => setAiOpen(!aiOpen)}
             >
               ✦ KI-Chat
             </button>
           </div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: C.text, lineHeight: 1.4, marginBottom: 6, fontStyle: "italic" }}>
+          <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", lineHeight: 1.4, marginBottom: 6, fontStyle: "italic", textShadow: "0 2px 12px rgba(0,0,0,0.6)", maxWidth: "78%" }}>
             „{quote.quote}"
           </div>
-          <div style={{ fontSize: 12, color: C.textMuted }}>— Harvey Specter · {quote.context}</div>
+          <div style={{ fontSize: 12, color: C.purpleLight, textShadow: "0 1px 6px rgba(0,0,0,0.7)" }}>— Harvey Specter · {quote.context}</div>
         </div>
-
-        {/* Daily Brief: 5 Englisch-Vokabeln + 1 Finanz-Thema */}
-        <DailyBrief />
 
         {/* KI Aktionen */}
         <div style={{ background: C.surface, border: `1px solid ${C.purple}33`, borderRadius: 12, padding: 16, marginBottom: 24 }}>
