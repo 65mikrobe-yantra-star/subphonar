@@ -10,6 +10,7 @@ import { useLocalStorage } from "@/lib/storage";
 import { avg, formatDate, isOverdue, punkte2Note } from "@/lib/helpers";
 import { chat } from "@/lib/ai.functions";
 import type { Fach, Klausur, Todo } from "@/lib/types";
+import harveyBg from "@/assets/harvey-bg.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -70,11 +71,19 @@ Du bist Subphonar, Johannas persönlicher Lern-Coach. Aktueller Stand: Gesamtsch
   async function generatePlan() {
     setPlanLoading(true);
     try {
-      const prompt = `Erstelle einen konkreten Lern-Tagesplan für HEUTE.
+      const now = new Date();
+      const startHour = Math.max(14, now.getHours() + (now.getMinutes() > 30 ? 1 : 0));
+      const startStr = `${String(startHour).padStart(2, "0")}:${now.getMinutes() > 30 ? "00" : "30"}`;
+      const prompt = `Erstelle einen konkreten Lern-Tagesplan für HEUTE, der erst um ${startStr} Uhr startet (nicht früher) und bis ca. 22:00 läuft.
 Klausuren: ${upcomingKlausuren.map((k) => `${k.title} in ${Math.ceil((new Date(k.datum).getTime() - Date.now()) / 86400000)} Tagen, Themen: ${k.themen.map((t) => `${t.name} [P:${t.prioritaet}]`).join(", ")}`).join(" | ") || "keine"}
 Offene Todos: ${openTodos.slice(0, 10).map((t) => `${t.title} [${t.prioritaet}]${t.due ? ` bis ${t.due}` : ""}`).join("; ") || "keine"}
 
-Antworte als kompakter Tagesplan mit 4-6 Time-Blocks (z.B. "09:00–10:30 …"), priorisiert nach Dringlichkeit. Markdown, kurz, motivierend. Schließe mit einem einzigen Harvey-Specter-style Push-Satz.`;
+Regeln:
+- 4–6 Time-Blocks im Format "HH:MM–HH:MM Thema/Aufgabe — kurzer Fokus".
+- Lernblöcke max. 60–75 min, dazwischen kurze Pausen.
+- Baue VERPFLICHTEND einen Sport-Block ein (45–60 min: Laufen, Krafttraining, Yoga oder Stretching) — wähle passend zur Tageszeit.
+- Eine kurze Abend-Routine (Wiederholung / Karteikarten) am Schluss.
+- Markdown, sehr kompakt, nur die Blocks + 1 abschließender Harvey-Specter-Push-Satz. Keine langen Einleitungen.`;
       const res = await chatFn({ data: { systemPrompt, messages: [{ role: "user", content: prompt }], files: [], model: "google/gemini-2.5-flash" } });
       setPlan(res.error ? `⚠️ ${res.error}` : res.text);
     } finally {
