@@ -57,6 +57,7 @@ Beispielsätze sollen schultauglich und alltagsnah sein.`;
       const clean = res.text.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(clean) as Omit<Brief, "date">;
       setBrief({ date: todayKey(), ...parsed });
+      setHistory((prev) => [...prev.slice(-13), parsed.finance.topic]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Konnte Briefing nicht laden.");
     } finally {
