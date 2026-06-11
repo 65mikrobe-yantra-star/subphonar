@@ -123,21 +123,11 @@ Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"
     <div style={s.app}>
       <AppNav />
       <div style={s.main(aiOpen)}>
-        {/* Hero */}
-        <div
-          style={{
-            background: `linear-gradient(135deg, ${C.purple}22, ${C.purpleDim})`,
-            border: `1px solid ${C.purple}44`,
-            borderRadius: 16,
-            padding: "28px 32px",
-            marginBottom: 18,
-          }}
-        >
         {/* Hero with Harvey background */}
         <div
           style={{
             position: "relative",
-            backgroundImage: `linear-gradient(115deg, rgba(15,15,19,0.92) 0%, rgba(15,15,19,0.72) 45%, rgba(127,119,221,0.35) 100%), url(${harveyBg})`,
+            backgroundImage: `linear-gradient(115deg, rgba(15,15,19,0.92) 0%, rgba(15,15,19,0.7) 45%, rgba(127,119,221,0.32) 100%), url(${harveyBg})`,
             backgroundSize: "cover",
             backgroundPosition: "center right",
             border: `1px solid ${C.purple}55`,
@@ -171,6 +161,9 @@ Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"
           </div>
           <div style={{ fontSize: 12, color: C.purpleLight, textShadow: "0 1px 6px rgba(0,0,0,0.7)" }}>— Harvey Specter · {quote.context}</div>
         </div>
+
+        {/* Daily Brief: 5 Englisch-Vokabeln + 1 Finanz-Thema (mit 🔄 Wechsel-Button) */}
+        <DailyBrief />
 
         {/* KI Aktionen */}
         <div style={{ background: C.surface, border: `1px solid ${C.purple}33`, borderRadius: 12, padding: 16, marginBottom: 24 }}>
