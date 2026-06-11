@@ -14,6 +14,7 @@ function todayKey() {
 
 export function DailyBrief() {
   const [brief, setBrief] = useLocalStorage<Brief | null>("sub.daily.brief", null);
+  const [history, setHistory] = useLocalStorage<string[]>("sub.daily.finance.history", []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const chatFn = useServerFn(chat);
@@ -22,6 +23,7 @@ export function DailyBrief() {
     setLoading(true);
     setError(null);
     try {
+      const excluded = history.slice(-14).join(", ");
       const prompt = `Erstelle Johannas tägliches Lern-Briefing für ${todayKey()}.
 Liefere AUSSCHLIESSLICH valides JSON in folgendem Schema (kein Markdown, kein Fließtext drumherum):
 {
@@ -30,11 +32,16 @@ Liefere AUSSCHLIESSLICH valides JSON in folgendem Schema (kein Markdown, kein Fl
     … insgesamt 5 nützliche Englisch-Vokabeln auf solidem B1/B2-Schul-Niveau, die Johanna in Klausuren / Aufsätzen / mündlichen Prüfungen tatsächlich verwenden kann (Verben, Adjektive, Übergangswörter, gängige Kollokationen — KEINE seltenen Spezialbegriffe).
   ],
   "finance": {
-    "topic":"… (z.B. ROI, EBITDA, Share Buyback, Working Capital, P/E-Ratio, Liquiditätsgrad, Cashflow, Leverage Effekt)",
+    "topic":"… (nur der Name der Kennzahl / des Konzepts)",
     "explanation":"klare, kompakte Erklärung in 3-5 Sätzen auf Deutsch, mit Mini-Beispiel + Formel falls passend."
   }
 }
-Wichtig: jeden Tag andere Vokabeln und ein anderes Finanz-/Business-Thema, nicht wiederholen. Beispielsätze sollen schultauglich und alltagsnah sein.`;
+
+Wähle als Finanz-Thema eine wichtige Kennzahl oder ein Business-Konzept, das in den letzten 14 Tagen NOCH NICHT dran war. Bereits verwendet (NICHT wiederholen): ${excluded || "noch keine"}.
+
+Mögliche Themen (nur Beispiele, nicht alles auf einmal): EBIT, EBITDA-Marge, Umsatzrendite, Eigenkapitalquote, Anlagendeckungsgrad I+II, Cash Conversion Cycle, DuPont-Analyse, Break-Even-Point, Marktanteil, WACC, Asset Turnover, ROE, ROA, Gesamtkapitalrentabilität, Operating Cashflow, Free Cashflow, Verschuldungsgrad, Zinsdeckungsgrad, Aktueller Liquiditätsgrad, Quick Ratio, Bruttomarge, Nettomarge, Kapitalkosten, Opportunity Cost, Economies of Scale, Marginalkosten, Lernkurve, Goodwill, Amortisation, Leverage-Effekt, Share Buyback, Spin-off, Joint Venture.
+
+Beispielsätze sollen schultauglich und alltagsnah sein.`;
       const res = await chatFn({
         data: {
           systemPrompt: PERSONA_PREFIX,
