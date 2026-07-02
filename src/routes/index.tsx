@@ -86,7 +86,7 @@ Regeln:
 - Eine kurze Abend-Routine (Wiederholung / Karteikarten) am Schluss.
 - Markdown, sehr kompakt, nur die Blocks + 1 abschließender Harvey-Specter-Push-Satz. Keine langen Einleitungen.`;
       const res = await chatFn({ data: { systemPrompt, messages: [{ role: "user", content: prompt }], files: [], model: "google/gemini-2.5-flash" } });
-      setPlan(res.error ? `⚠️ ${res.error}` : res.text);
+      setPlan(res.error ? `⚠️ ${res.error}` : cleanMarkdown(res.text));
     } finally {
       setPlanLoading(false);
     }
