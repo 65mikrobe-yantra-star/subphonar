@@ -1,0 +1,11 @@
+# Subphonar
+
+> Subphonar ist dein KI-gestützter Lernbegleiter für Schule und Studium: Noten verwalten, Klausurvorbereitung mit Themen, Flashcards, Mindmaps, Probeklausuren und einem persönlichen KI-Tutor — alles an einem Ort.
+
+## Pages
+
+- [Dashboard](/): Dein persönliches Lern-Cockpit mit Harvey-Specter-Motivation, täglichen Englisch-Vokabeln, einem Finanzthema des Tages und einem KI-Tagesplan.
+- [Noten](/noten): Notenübersicht pro Fach, Gesamtdurchschnitt, Noten-Tendenz und KI-Analyse-Chat.
+- [Klausuren](/klausuren): Liste aller anstehenden Klausuren mit Countdown.
+- [Klausur-Detail](/klausuren/1): Vollständige Klausurvorbereitung auf einer Seite — Themen-Tabelle mit Prioritäten und Keywords, KI-gestützte Flashcards, handschriftliche Mindmap, Executive Summary, Probeklausur-Generator mit Bewertung, Erklärbär (KI-Lehrer) und Fehler-Journal.
+- [Todos](/todos): Offene und erledigte Lernaufgaben, inklusive KI-generierter Aufgaben aus Klausuren.
