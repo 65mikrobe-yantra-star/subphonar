@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { C } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { chat } from "@/lib/ai.functions";
+import { cleanMarkdown } from "@/lib/helpers";
 import type { ChatMessage, FileBlock } from "@/lib/types";
 
 type Props = {
@@ -35,7 +36,8 @@ export function AiPanel({ show, onClose, systemPrompt, files, extraContext, acti
     setLoading(true);
     try {
       const res = await chatFn({ data: { systemPrompt, messages: hist, files: files ?? [], model: "google/gemini-2.5-flash" } });
-      const reply = res.error ? `⚠️ ${res.error}` : res.text || "(Keine Antwort)";
+      const raw = res.error ? `⚠️ ${res.error}` : res.text || "(Keine Antwort)";
+      const reply = res.error ? raw : cleanMarkdown(raw);
       setMessages([...hist, { role: "assistant", content: reply }]);
       if (onAction && !res.error) onAction(reply);
     } catch {

@@ -8,7 +8,7 @@ import { DailyHeader } from "@/components/DailyHeader";
 import { APP_NAME, C, FAECHER_DEFAULT, HARVEY_QUOTES, PERSONA_PREFIX } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
-import { avg, formatDate, isOverdue, punkte2Note } from "@/lib/helpers";
+import { avg, cleanMarkdown, formatDate, isOverdue, punkte2Note } from "@/lib/helpers";
 import { chat } from "@/lib/ai.functions";
 import type { Fach, Klausur, Todo } from "@/lib/types";
 import harveyBg from "@/assets/harvey-bg.jpg";
@@ -86,7 +86,7 @@ Regeln:
 - Eine kurze Abend-Routine (Wiederholung / Karteikarten) am Schluss.
 - Markdown, sehr kompakt, nur die Blocks + 1 abschließender Harvey-Specter-Push-Satz. Keine langen Einleitungen.`;
       const res = await chatFn({ data: { systemPrompt, messages: [{ role: "user", content: prompt }], files: [], model: "google/gemini-2.5-flash" } });
-      setPlan(res.error ? `⚠️ ${res.error}` : res.text);
+      setPlan(res.error ? `⚠️ ${res.error}` : cleanMarkdown(res.text));
     } finally {
       setPlanLoading(false);
     }
