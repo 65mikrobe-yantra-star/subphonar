@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { C } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { chat } from "@/lib/ai.functions";
+import { cleanMarkdown } from "@/lib/helpers";
 import type { ChatMessage, FileBlock } from "@/lib/types";
 
 type Props = {
