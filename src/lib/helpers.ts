@@ -1,5 +1,21 @@
 import type { FileBlock } from "./types";
 
+/** Entfernt Markdown-Artefakte (Sternchen, Unterstriche, Backticks, Header-#) für sauberen Plain-Text. */
+export function cleanMarkdown(txt: string): string {
+  if (!txt) return "";
+  return txt
+    .replace(/\*\*\*(.+?)\*\*\*/g, "$1")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)/g, "$1")
+    .replace(/__(.+?)__/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/^\s*[-*+]\s+/gm, "• ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+
 export function formatDate(d?: string | Date | null): string {
   if (!d) return "";
   return new Date(d).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
