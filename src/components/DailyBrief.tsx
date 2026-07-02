@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { Check } from "lucide-react";
 import { C, PERSONA_PREFIX } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
@@ -7,6 +8,7 @@ import { chat } from "@/lib/ai.functions";
 
 type Vocab = { word: string; ipa?: string; translation: string; example: string };
 type Brief = { date: string; vocab: Vocab[]; finance: { topic: string; explanation: string } };
+type VocabProgress = { date: string; learned: number[] };
 
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
@@ -15,9 +17,18 @@ function todayKey() {
 export function DailyBrief() {
   const [brief, setBrief] = useLocalStorage<Brief | null>("sub.daily.brief", null);
   const [history, setHistory] = useLocalStorage<string[]>("sub.daily.finance.history", []);
+  const [progress, setProgress] = useLocalStorage<VocabProgress>("sub.vocab.learned", { date: "", learned: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const chatFn = useServerFn(chat);
+
+  const learnedToday = progress.date === todayKey() ? progress.learned : [];
+  function toggleLearned(i: number) {
+    const today = todayKey();
+    const base = progress.date === today ? progress.learned : [];
+    const next = base.includes(i) ? base.filter((x) => x !== i) : [...base, i];
+    setProgress({ date: today, learned: next });
+  }
 
   async function generate() {
     setLoading(true);
