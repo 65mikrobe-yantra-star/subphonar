@@ -112,16 +112,41 @@ Beispielsätze sollen schultauglich und alltagsnah sein.`;
               🇬🇧 5 English Words of the Day
             </div>
             <div style={{ display: "grid", gap: 6 }}>
-              {brief.vocab.map((v, i) => (
-                <div key={i} style={{ background: C.surfaceHigh, borderRadius: 8, padding: "8px 10px", border: `1px solid ${C.border}` }}>
-                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: C.purpleLight }}>{v.word}</span>
-                    {v.ipa && <span style={{ fontSize: 10, color: C.textDim }}>/{v.ipa}/</span>}
-                    <span style={{ fontSize: 12, color: C.text }}>— {v.translation}</span>
+              {brief.vocab.map((v, i) => {
+                const done = learnedToday.includes(i);
+                return (
+                  <div key={i} style={{
+                    background: done ? `${C.teal}18` : C.surfaceHigh,
+                    borderRadius: 8, padding: "8px 10px",
+                    border: `1px solid ${done ? C.teal + "66" : C.border}`,
+                    display: "flex", alignItems: "flex-start", gap: 10,
+                    transition: "all 200ms ease",
+                  }}>
+                    <button
+                      onClick={() => toggleLearned(i)}
+                      title={done ? "Als 'noch nicht gelernt' markieren" : "Als gelernt markieren"}
+                      style={{
+                        width: 22, height: 22, borderRadius: "50%", flexShrink: 0, marginTop: 2,
+                        border: `1.5px solid ${done ? C.teal : C.borderLight}`,
+                        background: done ? C.teal : "transparent",
+                        color: "#fff", cursor: "pointer",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        transition: "all 160ms ease",
+                      }}
+                    >
+                      {done && <Check size={13} strokeWidth={3} />}
+                    </button>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: done ? C.teal : C.purpleLight, textDecoration: done ? "line-through" : "none" }}>{v.word}</span>
+                        {v.ipa && <span style={{ fontSize: 10, color: C.textDim }}>/{v.ipa}/</span>}
+                        <span style={{ fontSize: 12, color: C.text }}>— {v.translation}</span>
+                      </div>
+                      <div style={{ fontSize: 11, color: C.textMuted, fontStyle: "italic", marginTop: 3 }}>„{v.example}"</div>
+                    </div>
                   </div>
-                  <div style={{ fontSize: 11, color: C.textMuted, fontStyle: "italic", marginTop: 3 }}>„{v.example}"</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
           <div>
