@@ -4,6 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { AppNav } from "@/components/AppNav";
 import { AiPanel } from "@/components/AiPanel";
 import { DailyBrief } from "@/components/DailyBrief";
+import { DailyHeader } from "@/components/DailyHeader";
 import { APP_NAME, C, FAECHER_DEFAULT, HARVEY_QUOTES, PERSONA_PREFIX } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
@@ -123,6 +124,7 @@ Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"
     <div style={s.app}>
       <AppNav />
       <div style={s.main(aiOpen)}>
+        <DailyHeader vocabTotal={5} />
         {/* Hero with Harvey background */}
         <div
           style={{
