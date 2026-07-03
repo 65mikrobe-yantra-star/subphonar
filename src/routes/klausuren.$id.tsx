@@ -621,13 +621,183 @@ Sei präzise und prüfungsrelevant.`;
 
 function SectionTitle({ icon, label, color }: { icon: string; label: string; color: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-      <div style={{ fontSize: 16, fontWeight: 700, color }}>
-        {icon} {label}
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+      <div style={{ width: 4, height: 20, background: color, borderRadius: 2 }} />
+      <div style={{ fontSize: 17, fontWeight: 700, color: C.text, letterSpacing: "-0.02em" }}>
+        <span style={{ marginRight: 6, opacity: 0.85 }}>{icon}</span>{label}
       </div>
     </div>
   );
 }
+
+type ThemaCardProps = {
+  thema: Thema;
+  expanded: boolean;
+  onToggle: () => void;
+  onUpdate: <K extends keyof Thema>(field: K, val: Thema[K]) => void;
+  onDelete: () => void;
+  onAiFill: () => void;
+  onGenerateCards: () => void;
+  aiLoading: boolean;
+  flashcards?: Flashcard[];
+  showFlashcards: boolean;
+  toggleFlashcards: () => void;
+  deleteFlashcards: () => void;
+};
+
+function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill, onGenerateCards, aiLoading, flashcards, showFlashcards, toggleFlashcards, deleteFlashcards }: ThemaCardProps) {
+  const pc = PRIORITY_COLORS[t.prioritaet];
+  const typ = TYP_LABELS[t.typ ?? "theorie"];
+  const relevanz = t.relevanz ?? (t.prioritaet === "hoch" ? 5 : t.prioritaet === "mittel" ? 3 : 2);
+  return (
+    <div
+      style={{
+        background: C.surfaceHigh,
+        border: `1px solid ${C.border}`,
+        borderRadius: 12,
+        padding: 12,
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        transition: "border-color 120ms, transform 120ms",
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+        <input
+          style={{ background: "transparent", border: "none", color: C.text, fontSize: 13.5, fontWeight: 600, flex: 1, outline: "none", padding: 0, letterSpacing: "-0.01em" }}
+          value={t.name}
+          onChange={(e) => onUpdate("name", e.target.value)}
+        />
+        <button
+          style={{ background: "transparent", border: "none", color: C.textDim, cursor: "pointer", fontSize: 14, padding: "0 4px" }}
+          onClick={onToggle}
+          title={expanded ? "Einklappen" : "Details"}
+        >
+          {expanded ? "▴" : "▾"}
+        </button>
+      </div>
+
+      {/* Badge-Zeile: Typ · Prio · Zeit */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+        <span style={{ ...s.pill(typ.color + "22", typ.color), fontSize: 10, padding: "2px 8px" }}>{typ.icon} {typ.label}</span>
+        <span style={{ ...s.pill(pc.bg + "22", pc.bg), fontSize: 10, padding: "2px 8px" }}>◆ {pc.label}</span>
+        {t.zeit && <span style={{ ...s.pill(C.border, C.textMuted), fontSize: 10, padding: "2px 8px" }}>⏱ {t.zeit}</span>}
+      </div>
+
+      {/* Relevanz-Bar */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <span style={{ fontSize: 9, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em", width: 55 }}>Relevanz</span>
+        <div style={{ flex: 1, display: "flex", gap: 3 }}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button
+              key={n}
+              onClick={() => onUpdate("relevanz", n)}
+              style={{
+                flex: 1,
+                height: 5,
+                borderRadius: 99,
+                background: n <= relevanz ? pc.bg : C.border,
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+              }}
+              title={`Relevanz ${n}/5`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Lernstatus */}
+      <div style={{ display: "flex", gap: 4, marginTop: 2 }}>
+        {(["offen", "lernend", "sitzt"] as Lernstatus[]).map((st) => {
+          const active = (t.lernstatus ?? "offen") === st;
+          const color = st === "offen" ? C.purple : st === "lernend" ? C.amber : C.teal;
+          return (
+            <button
+              key={st}
+              onClick={() => onUpdate("lernstatus", st)}
+              style={{
+                flex: 1,
+                background: active ? color + "22" : "transparent",
+                border: `1px solid ${active ? color + "66" : C.border}`,
+                color: active ? color : C.textMuted,
+                borderRadius: 6,
+                padding: "3px 4px",
+                fontSize: 10,
+                cursor: "pointer",
+                fontWeight: active ? 600 : 400,
+                textTransform: "capitalize",
+              }}
+            >
+              {st}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Expanded */}
+      {expanded && (
+        <div style={{ display: "grid", gap: 8, marginTop: 4, paddingTop: 10, borderTop: `1px solid ${C.border}` }}>
+          <div style={{ display: "flex", gap: 6 }}>
+            <select
+              value={t.typ ?? "theorie"}
+              onChange={(e) => onUpdate("typ", e.target.value as AufgabenTyp)}
+              style={{ ...s.sel, marginBottom: 0, padding: "4px 6px", fontSize: 10.5, flex: 1 }}
+            >
+              {Object.entries(TYP_LABELS).map(([k, v]) => (
+                <option key={k} value={k}>{v.label}</option>
+              ))}
+            </select>
+            <select
+              value={t.prioritaet}
+              onChange={(e) => onUpdate("prioritaet", e.target.value as Prioritaet)}
+              style={{ ...s.sel, marginBottom: 0, padding: "4px 6px", fontSize: 10.5, flex: 1 }}
+            >
+              <option value="hoch">Hoch</option>
+              <option value="mittel">Mittel</option>
+              <option value="niedrig">Niedrig</option>
+            </select>
+            <input
+              style={{ ...s.inp, marginBottom: 0, padding: "4px 6px", fontSize: 10.5, width: 70 }}
+              placeholder="Zeit"
+              value={t.zeit}
+              onChange={(e) => onUpdate("zeit", e.target.value)}
+            />
+          </div>
+          <ThemaField label="Key Points" value={t.keypoints} onChange={(v) => onUpdate("keypoints", v)} color={C.purpleLight} />
+          <ThemaField label="Mindmap / Struktur" value={t.mindmap} onChange={(v) => onUpdate("mindmap", v)} color={C.amber} />
+          <ThemaField label="Offene Fragen" value={t.offeneFragen} onChange={(v) => onUpdate("offeneFragen", v)} color={"#F09595"} />
+          <ThemaField label="Verwechslungen / Fallen" value={t.verwechslungen ?? ""} onChange={(v) => onUpdate("verwechslungen", v)} color={"#5DCAA5"} />
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <button style={{ ...s.smallBtn(C.amber), padding: "5px 10px", fontSize: 10.5 }} onClick={onAiFill} disabled={aiLoading}>
+              {aiLoading ? "…" : "✦ KI-Fill"}
+            </button>
+            <button style={{ ...s.smallBtn(C.purpleLight), padding: "5px 10px", fontSize: 10.5 }} onClick={onGenerateCards} disabled={aiLoading}>
+              🎴 Flashcards
+            </button>
+            <button style={{ ...s.smallBtn(C.red), padding: "5px 10px", fontSize: 10.5, marginLeft: "auto" }} onClick={onDelete}>
+              ✕ Löschen
+            </button>
+          </div>
+          {flashcards && flashcards.length > 0 && (
+            <div style={{ padding: 10, background: C.surface, borderRadius: 8, border: `1px solid ${C.border}` }}>
+              <div style={{ display: "flex", alignItems: "center", marginBottom: 6, gap: 6 }}>
+                <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em" }}>{flashcards.length} Karten</div>
+                <button style={{ ...s.smallBtn(C.purple), padding: "2px 8px", fontSize: 10, marginLeft: "auto" }} onClick={toggleFlashcards}>
+                  {showFlashcards ? "Einklappen" : "Üben"}
+                </button>
+                <button style={{ ...s.smallBtn(C.red), padding: "2px 8px", fontSize: 10 }} onClick={deleteFlashcards}>Löschen</button>
+              </div>
+              {showFlashcards && <FlashcardView cards={flashcards} onClose={toggleFlashcards} />}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 function ThemaField({ label, value, onChange, color }: { label: string; value: string; onChange: (v: string) => void; color: string }) {
   return (
