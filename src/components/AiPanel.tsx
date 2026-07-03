@@ -14,18 +14,59 @@ type Props = {
   extraContext?: string;
   actionLabel?: string;
   onAction?: (reply: string) => void;
+  /** Persistiert die Chat-Historie im localStorage (pro Kontext eigener Key). */
+  storageKey?: string;
 };
 
-export function AiPanel({ show, onClose, systemPrompt, files, extraContext, actionLabel, onAction }: Props) {
+function loadHistory(key?: string): ChatMessage[] {
+  if (!key || typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as ChatMessage[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function getChatSummary(key: string, max = 110): string | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return null;
+    const msgs = JSON.parse(raw) as ChatMessage[];
+    if (!msgs.length) return null;
+    const lastUser = [...msgs].reverse().find((m) => m.role === "user");
+    const lastBot = [...msgs].reverse().find((m) => m.role === "assistant");
+    const u = lastUser?.content.replace(/\s+/g, " ").trim() ?? "";
+    const b = lastBot?.content.replace(/\s+/g, " ").trim() ?? "";
+    const clip = (t: string, n: number) => (t.length > n ? t.slice(0, n).trimEnd() + "…" : t);
+    if (!u && !b) return null;
+    if (!b) return `„${clip(u, max)}“`;
+    return `„${clip(u, 50)}“ → ${clip(b, max)}`;
+  } catch {
+    return null;
+  }
+}
+
+export function AiPanel({ show, onClose, systemPrompt, files, extraContext, actionLabel, onAction, storageKey }: Props) {
   const chatFn = useServerFn(chat);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => loadHistory(storageKey));
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (show) setMessages(loadHistory(storageKey));
+  }, [show, storageKey]);
+
+  useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    if (storageKey && typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem(storageKey, JSON.stringify(messages.slice(-20)));
+      } catch { /* ignore quota */ }
+    }
+  }, [messages, storageKey]);
 
   async function send() {
     if (!input.trim() || loading) return;
@@ -46,42 +87,59 @@ export function AiPanel({ show, onClose, systemPrompt, files, extraContext, acti
     setLoading(false);
   }
 
+  function resetHistory() {
+    setMessages([]);
+    if (storageKey && typeof window !== "undefined") {
+      window.localStorage.removeItem(storageKey);
+    }
+  }
+
   if (!show) return null;
   return (
     <div style={s.aiPanel}>
       <div style={s.aiHeader}>
         <div
           style={{
-            width: 28,
-            height: 28,
+            width: 30,
+            height: 30,
             borderRadius: "50%",
             background: `linear-gradient(135deg, ${C.purple}, ${C.purpleLight})`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: 14,
+            color: "#fff",
           }}
         >
           ✦
         </div>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.chatText }}>Subphonar KI</div>
-          {extraContext && <div style={{ fontSize: 10, color: C.chatMuted }}>{extraContext}</div>}
+        <div style={{ minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.chatText, letterSpacing: "-0.01em" }}>Subphonar KI</div>
+          {extraContext && <div style={{ fontSize: 10.5, color: C.chatMuted }}>{extraContext}</div>}
         </div>
+        {messages.length > 0 && (
+          <button
+            style={{ marginLeft: "auto", background: "none", border: "none", color: C.chatMuted, cursor: "pointer", fontSize: 11 }}
+            onClick={resetHistory}
+            title="Verlauf löschen"
+          >
+            Neu
+          </button>
+        )}
         <button
-          style={{ marginLeft: "auto", background: "none", border: "none", color: C.chatMuted, cursor: "pointer", fontSize: 18, lineHeight: 1 }}
+          style={{ marginLeft: messages.length > 0 ? 4 : "auto", background: "none", border: "none", color: C.chatMuted, cursor: "pointer", fontSize: 18, lineHeight: 1 }}
           onClick={onClose}
         >
           ✕
         </button>
       </div>
       {files && files.length > 0 && (
-        <div style={{ padding: "6px 14px", background: "#f0f0f8", borderBottom: `1px solid ${C.chatBorder}`, fontSize: 11, color: C.purple }}>
+        <div style={{ padding: "6px 14px", background: "rgba(127,119,221,0.08)", borderBottom: `1px solid rgba(0,0,0,0.05)`, fontSize: 11, color: C.purple }}>
           📎 {files.length} Datei(en) im Kontext
         </div>
       )}
       {actionLabel && (
-        <div style={{ padding: "6px 14px", background: "#f8f8fe", borderBottom: `1px solid ${C.chatBorder}`, fontSize: 11, color: C.chatMuted }}>
+        <div style={{ padding: "6px 14px", background: "rgba(239,159,39,0.08)", borderBottom: `1px solid rgba(0,0,0,0.05)`, fontSize: 11, color: C.chatMuted }}>
           💡 {actionLabel}
         </div>
       )}
