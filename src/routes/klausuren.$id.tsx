@@ -2,18 +2,18 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppNav } from "@/components/AppNav";
-import { AiPanel } from "@/components/AiPanel";
+import { AiPanel, getChatSummary } from "@/components/AiPanel";
 import { FileUploadZone } from "@/components/FileUploadZone";
 import { FlashcardView } from "@/components/FlashcardView";
 import { MindmapCanvas } from "@/components/MindmapCanvas";
 import { PruefungsTab } from "@/components/PruefungsTab";
 import { ErklaerbaerTab } from "@/components/ErklaerbaerTab";
-import { APP_NAME, C, PERSONA_PREFIX, PRIORITY_COLORS } from "@/lib/constants";
+import { APP_NAME, C, PERSONA_PREFIX, PRIORITY_COLORS, THEMA_STATUS_COLUMNS, TYP_LABELS } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
 import { formatDate } from "@/lib/helpers";
 import { chat } from "@/lib/ai.functions";
-import type { Flashcard, Klausur, MindmapStroke, Prioritaet, Thema } from "@/lib/types";
+import type { AufgabenTyp, Flashcard, Klausur, Lernstatus, MindmapStroke, Prioritaet, Thema } from "@/lib/types";
 
 export const Route = createFileRoute("/klausuren/$id")({
   head: () => ({ meta: [{ title: `Klausur — ${APP_NAME}` }] }),
