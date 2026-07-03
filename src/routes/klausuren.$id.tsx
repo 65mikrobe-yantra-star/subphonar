@@ -632,7 +632,8 @@ Sei präzise und prüfungsrelevant.`;
 
 
         {/* AI Panel */}
-        <AiPanel show={aiOpen} onClose={() => setAiOpen(false)} systemPrompt={systemPrompt} files={files} extraContext={`Klausur: ${klausur.title}`} />
+        <AiPanel show={aiOpen} onClose={() => setAiOpen(false)} systemPrompt={systemPrompt} files={files} extraContext={`Klausur: ${klausur.title}`} storageKey={`sub.chat.klausur.${klausur.id}`} />
+
 
         {/* Add Thema Modal */}
         {showAddThema && (
