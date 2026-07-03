@@ -258,7 +258,7 @@ Sei präzise und prüfungsrelevant.`;
             ← Klausuren
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8, flexWrap: "wrap" }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: C.text, margin: 0 }}>{klausur.title}</h1>
+            <h1 style={{ fontSize: 26, fontWeight: 700, color: C.text, margin: 0, letterSpacing: "-0.02em" }}>{klausur.title}</h1>
             <div style={{ ...s.pill(C.purpleDim, C.purpleLight), fontSize: 12, padding: "4px 12px" }}>{klausur.fach || "—"}</div>
             {klausur.datum && (
               <div style={{ ...s.pill(C.amberDim, C.amber), fontSize: 12, padding: "4px 12px" }}>{formatDate(klausur.datum)}</div>
@@ -267,7 +267,38 @@ Sei präzise und prüfungsrelevant.`;
               ✦ KI-Chat
             </button>
           </div>
+          {!aiOpen && (() => {
+            const summary = getChatSummary(`sub.chat.klausur.${klausur.id}`);
+            if (!summary) return null;
+            return (
+              <button
+                onClick={() => setAiOpen(true)}
+                style={{
+                  marginTop: 10,
+                  width: "100%",
+                  textAlign: "left",
+                  background: "rgba(127,119,221,0.08)",
+                  border: `1px solid ${C.purple}33`,
+                  borderRadius: 10,
+                  padding: "8px 12px",
+                  color: C.textMuted,
+                  fontSize: 11.5,
+                  cursor: "pointer",
+                  lineHeight: 1.5,
+                  display: "flex",
+                  gap: 8,
+                  alignItems: "flex-start",
+                }}
+                title="Chat fortsetzen"
+              >
+                <span style={{ color: C.purpleLight, fontWeight: 600, flexShrink: 0 }}>✦ Zuletzt:</span>
+                <span style={{ flex: 1 }}>{summary}</span>
+                <span style={{ color: C.textDim, flexShrink: 0 }}>↗</span>
+              </button>
+            );
+          })()}
         </div>
+
 
         {/* Probleme & Lösungen */}
         {(klausur.probleme || klausur.loesungen) && (
