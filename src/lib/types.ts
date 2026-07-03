@@ -4,6 +4,8 @@ export type Note = { val: number; type: Mode; date: string };
 export type Fach = { id: number; name: string; noten: Note[]; gewichtung: number };
 
 export type Prioritaet = "hoch" | "mittel" | "niedrig";
+export type AufgabenTyp = "theorie" | "rechnung" | "freitext" | "mc" | "vokabeln" | "anwendung";
+export type Lernstatus = "offen" | "lernend" | "sitzt";
 export type Thema = {
   id: number;
   name: string;
@@ -14,6 +16,12 @@ export type Thema = {
   offeneFragen: string;
   /** AI-filled: typische Verwechslungen / Fehler zu diesem Thema */
   verwechslungen?: string;
+  /** Aufgaben-Typ (MC, Freitext, Rechnung…) */
+  typ?: AufgabenTyp;
+  /** Relevanz-Faktor 1–5 (wie prüfungsrelevant) */
+  relevanz?: number;
+  /** Lernstatus für Kanban */
+  lernstatus?: Lernstatus;
 };
 
 export type Flashcard = { question: string; answer: string };
