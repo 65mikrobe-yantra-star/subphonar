@@ -31,6 +31,21 @@ export const STATUS_COLUMNS = [
   { id: "done" as const, label: "Erledigt", color: "#1D9E75", icon: "●" },
 ];
 
+export const THEMA_STATUS_COLUMNS = [
+  { id: "offen" as const, label: "Offen", color: "#7F77DD", icon: "○", hint: "Noch nicht angefangen" },
+  { id: "lernend" as const, label: "Am Lernen", color: "#EF9F27", icon: "◐", hint: "In Bearbeitung" },
+  { id: "sitzt" as const, label: "Sitzt", color: "#1D9E75", icon: "●", hint: "Kann ich" },
+];
+
+export const TYP_LABELS: Record<string, { label: string; color: string; icon: string }> = {
+  theorie:    { label: "Theorie",    color: "#7F77DD", icon: "📖" },
+  rechnung:   { label: "Rechnung",   color: "#EF9F27", icon: "🧮" },
+  freitext:   { label: "Freitext",   color: "#AFA9EC", icon: "✍️" },
+  mc:         { label: "Multiple Choice", color: "#1D9E75", icon: "☑" },
+  vokabeln:   { label: "Vokabeln",   color: "#E05A2B", icon: "🔤" },
+  anwendung:  { label: "Anwendung",  color: "#5DCAA5", icon: "⚙️" },
+};
+
 export const FAECHER_DEFAULT: Fach[] = [
   { id: 1, name: "Deutsch", noten: [], gewichtung: 1 },
   { id: 2, name: "Mathematik", noten: [], gewichtung: 1 },

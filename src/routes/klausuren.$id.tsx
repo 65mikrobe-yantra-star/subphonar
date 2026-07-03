@@ -2,18 +2,18 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppNav } from "@/components/AppNav";
-import { AiPanel } from "@/components/AiPanel";
+import { AiPanel, getChatSummary } from "@/components/AiPanel";
 import { FileUploadZone } from "@/components/FileUploadZone";
 import { FlashcardView } from "@/components/FlashcardView";
 import { MindmapCanvas } from "@/components/MindmapCanvas";
 import { PruefungsTab } from "@/components/PruefungsTab";
 import { ErklaerbaerTab } from "@/components/ErklaerbaerTab";
-import { APP_NAME, C, PERSONA_PREFIX, PRIORITY_COLORS } from "@/lib/constants";
+import { APP_NAME, C, PERSONA_PREFIX, PRIORITY_COLORS, THEMA_STATUS_COLUMNS, TYP_LABELS } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
 import { formatDate } from "@/lib/helpers";
 import { chat } from "@/lib/ai.functions";
-import type { Flashcard, Klausur, MindmapStroke, Prioritaet, Thema } from "@/lib/types";
+import type { AufgabenTyp, Flashcard, Klausur, Lernstatus, MindmapStroke, Prioritaet, Thema } from "@/lib/types";
 
 export const Route = createFileRoute("/klausuren/$id")({
   head: () => ({ meta: [{ title: `Klausur — ${APP_NAME}` }] }),
@@ -258,7 +258,7 @@ Sei präzise und prüfungsrelevant.`;
             ← Klausuren
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8, flexWrap: "wrap" }}>
-            <h1 style={{ fontSize: 24, fontWeight: 700, color: C.text, margin: 0 }}>{klausur.title}</h1>
+            <h1 style={{ fontSize: 26, fontWeight: 700, color: C.text, margin: 0, letterSpacing: "-0.02em" }}>{klausur.title}</h1>
             <div style={{ ...s.pill(C.purpleDim, C.purpleLight), fontSize: 12, padding: "4px 12px" }}>{klausur.fach || "—"}</div>
             {klausur.datum && (
               <div style={{ ...s.pill(C.amberDim, C.amber), fontSize: 12, padding: "4px 12px" }}>{formatDate(klausur.datum)}</div>
@@ -267,7 +267,38 @@ Sei präzise und prüfungsrelevant.`;
               ✦ KI-Chat
             </button>
           </div>
+          {!aiOpen && (() => {
+            const summary = getChatSummary(`sub.chat.klausur.${klausur.id}`);
+            if (!summary) return null;
+            return (
+              <button
+                onClick={() => setAiOpen(true)}
+                style={{
+                  marginTop: 10,
+                  width: "100%",
+                  textAlign: "left",
+                  background: "rgba(127,119,221,0.08)",
+                  border: `1px solid ${C.purple}33`,
+                  borderRadius: 10,
+                  padding: "8px 12px",
+                  color: C.textMuted,
+                  fontSize: 11.5,
+                  cursor: "pointer",
+                  lineHeight: 1.5,
+                  display: "flex",
+                  gap: 8,
+                  alignItems: "flex-start",
+                }}
+                title="Chat fortsetzen"
+              >
+                <span style={{ color: C.purpleLight, fontWeight: 600, flexShrink: 0 }}>✦ Zuletzt:</span>
+                <span style={{ flex: 1 }}>{summary}</span>
+                <span style={{ color: C.textDim, flexShrink: 0 }}>↗</span>
+              </button>
+            );
+          })()}
         </div>
+
 
         {/* Probleme & Lösungen */}
         {(klausur.probleme || klausur.loesungen) && (
@@ -304,121 +335,81 @@ Sei präzise und prüfungsrelevant.`;
         </div>
 
         {/* THEMEN */}
-        <div id="sec-themen" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
-        <SectionTitle icon="📋" label="Themen-Tabelle" color={C.purple} />
-          <div>
-            {/* setTab kept to silence unused */}
-            <button style={{ display: "none" }} onClick={() => setTab("themen")}>x</button>
-            <div style={{ marginBottom: 12, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-              <button style={{ ...s.smallBtn(C.teal), padding: "6px 14px", fontSize: 12 }} onClick={() => setShowAddThema(true)}>
-                + Weiteres Thema
-              </button>
-              {aiFillError && (
-                <div style={{ fontSize: 11, color: "#F09595", background: C.redDim, padding: "5px 10px", borderRadius: 6, border: `1px solid ${C.red}33` }}>
-                  ⚠ {aiFillError}
-                </div>
-              )}
+        <div id="sec-themen" style={{ scrollMarginTop: 70, marginBottom: 32 }}>
+          <SectionTitle icon="📋" label="Themen-Board" color={C.purple} />
+          {/* setTab kept to silence unused */}
+          <button style={{ display: "none" }} onClick={() => setTab("themen")}>x</button>
+          <div style={{ marginBottom: 14, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <div style={{ fontSize: 12, color: C.textMuted }}>
+              {klausur.themen.length} Thema{klausur.themen.length === 1 ? "" : "en"} · Ziehe per Status durch die Lernphasen.
             </div>
-            {klausur.themen.length === 0 && (
-              <div style={{ background: C.surface, border: `1px dashed ${C.border}`, borderRadius: 10, padding: 30, textAlign: "center", color: C.textMuted, fontSize: 13 }}>
-                Noch keine Themen. Lege das erste an.
+            <button style={{ ...s.smallBtn(C.teal), padding: "6px 14px", fontSize: 12, marginLeft: "auto" }} onClick={() => setShowAddThema(true)}>
+              + Thema
+            </button>
+            {aiFillError && (
+              <div style={{ fontSize: 11, color: "#F09595", background: C.redDim, padding: "5px 10px", borderRadius: 6, border: `1px solid ${C.red}33` }}>
+                ⚠ {aiFillError}
               </div>
             )}
-            <div style={{ display: "grid", gap: 14 }}>
-              {klausur.themen.map((t) => {
-                const pc = PRIORITY_COLORS[t.prioritaet];
-                const fcs = themaFlashcards[t.id];
+          </div>
+          {klausur.themen.length === 0 && (
+            <div style={{ background: C.surface, border: `1px dashed ${C.border}`, borderRadius: 12, padding: 40, textAlign: "center", color: C.textMuted, fontSize: 13 }}>
+              Noch keine Themen. Lege das erste an.
+            </div>
+          )}
+          {klausur.themen.length > 0 && (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))", gap: 14 }}>
+              {THEMA_STATUS_COLUMNS.map((col) => {
+                const list = klausur.themen.filter((t) => (t.lernstatus ?? "offen") === col.id);
                 return (
-                  <div key={t.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <span style={{ ...s.pill(pc.bg, pc.text), fontSize: 10 }}>{pc.label}</span>
-                      <input
-                        style={{ background: "transparent", border: "none", color: C.text, fontSize: 15, fontWeight: 600, flex: 1, outline: "none" }}
-                        value={t.name}
-                        onChange={(e) => updateThemaField(t.id, "name", e.target.value)}
-                      />
-                      <button
-                        style={{ ...s.smallBtn(C.amber), padding: "4px 10px" }}
-                        onClick={() => void aiFillThema(t)}
-                        disabled={aiFillLoading === t.id}
-                        title="KI füllt Key Points, Fragen und Verwechslungen"
-                      >
-                        {aiFillLoading === t.id ? "…" : "✦ KI-Fill"}
-                      </button>
-                      <button style={s.smallBtn(C.red)} onClick={() => deleteThema(t.id)}>
-                        ✕
-                      </button>
+                  <div
+                    key={col.id}
+                    style={{
+                      background: C.surface,
+                      border: `1px solid ${col.color}22`,
+                      borderRadius: 14,
+                      padding: 14,
+                      minHeight: 220,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 10,
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 8, borderBottom: `1px solid ${col.color}22` }}>
+                      <span style={{ color: col.color, fontSize: 14 }}>{col.icon}</span>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: col.color, letterSpacing: "-0.01em", flex: 1 }}>{col.label}</span>
+                      <span style={{ fontSize: 11, color: C.textDim, background: col.color + "18", padding: "1px 8px", borderRadius: 99 }}>{list.length}</span>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                      <ThemaField label="Key Points / Keywords" value={t.keypoints} onChange={(v) => updateThemaField(t.id, "keypoints", v)} color={C.purpleLight} />
-                      <ThemaField label="Mindmap / Struktur" value={t.mindmap} onChange={(v) => updateThemaField(t.id, "mindmap", v)} color={C.amber} />
-                      <ThemaField label="Offene Fragen" value={t.offeneFragen} onChange={(v) => updateThemaField(t.id, "offeneFragen", v)} color={"#F09595"} />
-                      <ThemaField
-                        label="Was verwechsle ich oft / Fehler?"
-                        value={t.verwechslungen ?? ""}
-                        onChange={(v) => updateThemaField(t.id, "verwechslungen", v)}
-                        color={"#5DCAA5"}
-                      />
-                      <div style={{ gridColumn: "1 / -1", display: "flex", gap: 10, alignItems: "center" }}>
-                        <div style={{ flex: 1, display: "flex", gap: 6 }}>
-                          <select
-                            value={t.prioritaet}
-                            onChange={(e) => updateThemaField(t.id, "prioritaet", e.target.value as Prioritaet)}
-                            style={{ ...s.sel, marginBottom: 0, padding: "5px 8px", fontSize: 11, flex: 1 }}
-                          >
-                            <option value="hoch">Priorität: Hoch</option>
-                            <option value="mittel">Priorität: Mittel</option>
-                            <option value="niedrig">Priorität: Niedrig</option>
-                          </select>
-                          <input
-                            style={{ ...s.inp, marginBottom: 0, padding: "5px 8px", fontSize: 11, flex: 1 }}
-                            placeholder="Zeit (z.B. 2h)"
-                            value={t.zeit}
-                            onChange={(e) => updateThemaField(t.id, "zeit", e.target.value)}
-                          />
-                        </div>
-                        <button
-                          style={{ ...s.smallBtn(C.purpleLight), padding: "6px 14px", fontSize: 11 }}
-                          onClick={() => void generateThemaFlashcards(t)}
-                          disabled={aiFillLoading === t.id}
-                        >
-                          🎴 Flashcards zu diesem Thema
-                        </button>
-                      </div>
-                    </div>
-                    {fcs && fcs.length > 0 && (
-                      <div style={{ marginTop: 12, padding: 12, background: C.surfaceHigh, borderRadius: 10, border: `1px solid ${C.border}` }}>
-                        <div style={{ display: "flex", alignItems: "center", marginBottom: 8, gap: 8 }}>
-                          <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em" }}>
-                            {fcs.length} Flashcards
-                          </div>
-                          <button
-                            style={{ ...s.smallBtn(C.purple), padding: "3px 10px", fontSize: 10, marginLeft: "auto" }}
-                            onClick={() => setShowFlashcards((m) => ({ ...m, [t.id]: !m[t.id] }))}
-                          >
-                            {showFlashcards[t.id] ? "Einklappen" : "Üben"}
-                          </button>
-                          <button
-                            style={{ ...s.smallBtn(C.red), padding: "3px 10px", fontSize: 10 }}
-                            onClick={() => {
-                              if (!confirm("Flashcards löschen?")) return;
-                              sync({ ...klausur, themaFlashcards: Object.fromEntries(Object.entries(themaFlashcards).filter(([k]) => k !== String(t.id))) });
-                            }}
-                          >
-                            Karten löschen
-                          </button>
-                        </div>
-                        {showFlashcards[t.id] && (
-                          <FlashcardView cards={fcs} onClose={() => setShowFlashcards((m) => ({ ...m, [t.id]: false }))} />
-                        )}
-                      </div>
+                    {list.length === 0 && (
+                      <div style={{ fontSize: 11, color: C.textDim, textAlign: "center", padding: 14, fontStyle: "italic" }}>{col.hint}</div>
                     )}
+                    {list.map((t) => (
+                      <ThemaCard
+                        key={t.id}
+                        thema={t}
+                        expanded={!!showFlashcards[`exp-${t.id}` as unknown as number]}
+                        onToggle={() => setShowFlashcards((m) => ({ ...m, [`exp-${t.id}` as unknown as number]: !m[`exp-${t.id}` as unknown as number] }))}
+                        onUpdate={(field, val) => updateThemaField(t.id, field, val)}
+                        onDelete={() => deleteThema(t.id)}
+                        onAiFill={() => void aiFillThema(t)}
+                        onGenerateCards={() => void generateThemaFlashcards(t)}
+                        aiLoading={aiFillLoading === t.id}
+                        flashcards={themaFlashcards[t.id]}
+                        showFlashcards={!!showFlashcards[t.id]}
+                        toggleFlashcards={() => setShowFlashcards((m) => ({ ...m, [t.id]: !m[t.id] }))}
+                        deleteFlashcards={() => {
+                          if (!confirm("Flashcards löschen?")) return;
+                          sync({ ...klausur, themaFlashcards: Object.fromEntries(Object.entries(themaFlashcards).filter(([k]) => k !== String(t.id))) });
+                        }}
+                      />
+                    ))}
                   </div>
                 );
               })}
             </div>
-          </div>
+          )}
         </div>
+
 
         {/* DATEIEN */}
         <div id="sec-dateien" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
@@ -601,7 +592,8 @@ Sei präzise und prüfungsrelevant.`;
 
 
         {/* AI Panel */}
-        <AiPanel show={aiOpen} onClose={() => setAiOpen(false)} systemPrompt={systemPrompt} files={files} extraContext={`Klausur: ${klausur.title}`} />
+        <AiPanel show={aiOpen} onClose={() => setAiOpen(false)} systemPrompt={systemPrompt} files={files} extraContext={`Klausur: ${klausur.title}`} storageKey={`sub.chat.klausur.${klausur.id}`} />
+
 
         {/* Add Thema Modal */}
         {showAddThema && (
@@ -629,13 +621,183 @@ Sei präzise und prüfungsrelevant.`;
 
 function SectionTitle({ icon, label, color }: { icon: string; label: string; color: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-      <div style={{ fontSize: 16, fontWeight: 700, color }}>
-        {icon} {label}
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+      <div style={{ width: 4, height: 20, background: color, borderRadius: 2 }} />
+      <div style={{ fontSize: 17, fontWeight: 700, color: C.text, letterSpacing: "-0.02em" }}>
+        <span style={{ marginRight: 6, opacity: 0.85 }}>{icon}</span>{label}
       </div>
     </div>
   );
 }
+
+type ThemaCardProps = {
+  thema: Thema;
+  expanded: boolean;
+  onToggle: () => void;
+  onUpdate: <K extends keyof Thema>(field: K, val: Thema[K]) => void;
+  onDelete: () => void;
+  onAiFill: () => void;
+  onGenerateCards: () => void;
+  aiLoading: boolean;
+  flashcards?: Flashcard[];
+  showFlashcards: boolean;
+  toggleFlashcards: () => void;
+  deleteFlashcards: () => void;
+};
+
+function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill, onGenerateCards, aiLoading, flashcards, showFlashcards, toggleFlashcards, deleteFlashcards }: ThemaCardProps) {
+  const pc = PRIORITY_COLORS[t.prioritaet];
+  const typ = TYP_LABELS[t.typ ?? "theorie"];
+  const relevanz = t.relevanz ?? (t.prioritaet === "hoch" ? 5 : t.prioritaet === "mittel" ? 3 : 2);
+  return (
+    <div
+      style={{
+        background: C.surfaceHigh,
+        border: `1px solid ${C.border}`,
+        borderRadius: 12,
+        padding: 12,
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        transition: "border-color 120ms, transform 120ms",
+      }}
+    >
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+        <input
+          style={{ background: "transparent", border: "none", color: C.text, fontSize: 13.5, fontWeight: 600, flex: 1, outline: "none", padding: 0, letterSpacing: "-0.01em" }}
+          value={t.name}
+          onChange={(e) => onUpdate("name", e.target.value)}
+        />
+        <button
+          style={{ background: "transparent", border: "none", color: C.textDim, cursor: "pointer", fontSize: 14, padding: "0 4px" }}
+          onClick={onToggle}
+          title={expanded ? "Einklappen" : "Details"}
+        >
+          {expanded ? "▴" : "▾"}
+        </button>
+      </div>
+
+      {/* Badge-Zeile: Typ · Prio · Zeit */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+        <span style={{ ...s.pill(typ.color + "22", typ.color), fontSize: 10, padding: "2px 8px" }}>{typ.icon} {typ.label}</span>
+        <span style={{ ...s.pill(pc.bg + "22", pc.bg), fontSize: 10, padding: "2px 8px" }}>◆ {pc.label}</span>
+        {t.zeit && <span style={{ ...s.pill(C.border, C.textMuted), fontSize: 10, padding: "2px 8px" }}>⏱ {t.zeit}</span>}
+      </div>
+
+      {/* Relevanz-Bar */}
+      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        <span style={{ fontSize: 9, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em", width: 55 }}>Relevanz</span>
+        <div style={{ flex: 1, display: "flex", gap: 3 }}>
+          {[1, 2, 3, 4, 5].map((n) => (
+            <button
+              key={n}
+              onClick={() => onUpdate("relevanz", n)}
+              style={{
+                flex: 1,
+                height: 5,
+                borderRadius: 99,
+                background: n <= relevanz ? pc.bg : C.border,
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+              }}
+              title={`Relevanz ${n}/5`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Lernstatus */}
+      <div style={{ display: "flex", gap: 4, marginTop: 2 }}>
+        {(["offen", "lernend", "sitzt"] as Lernstatus[]).map((st) => {
+          const active = (t.lernstatus ?? "offen") === st;
+          const color = st === "offen" ? C.purple : st === "lernend" ? C.amber : C.teal;
+          return (
+            <button
+              key={st}
+              onClick={() => onUpdate("lernstatus", st)}
+              style={{
+                flex: 1,
+                background: active ? color + "22" : "transparent",
+                border: `1px solid ${active ? color + "66" : C.border}`,
+                color: active ? color : C.textMuted,
+                borderRadius: 6,
+                padding: "3px 4px",
+                fontSize: 10,
+                cursor: "pointer",
+                fontWeight: active ? 600 : 400,
+                textTransform: "capitalize",
+              }}
+            >
+              {st}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Expanded */}
+      {expanded && (
+        <div style={{ display: "grid", gap: 8, marginTop: 4, paddingTop: 10, borderTop: `1px solid ${C.border}` }}>
+          <div style={{ display: "flex", gap: 6 }}>
+            <select
+              value={t.typ ?? "theorie"}
+              onChange={(e) => onUpdate("typ", e.target.value as AufgabenTyp)}
+              style={{ ...s.sel, marginBottom: 0, padding: "4px 6px", fontSize: 10.5, flex: 1 }}
+            >
+              {Object.entries(TYP_LABELS).map(([k, v]) => (
+                <option key={k} value={k}>{v.label}</option>
+              ))}
+            </select>
+            <select
+              value={t.prioritaet}
+              onChange={(e) => onUpdate("prioritaet", e.target.value as Prioritaet)}
+              style={{ ...s.sel, marginBottom: 0, padding: "4px 6px", fontSize: 10.5, flex: 1 }}
+            >
+              <option value="hoch">Hoch</option>
+              <option value="mittel">Mittel</option>
+              <option value="niedrig">Niedrig</option>
+            </select>
+            <input
+              style={{ ...s.inp, marginBottom: 0, padding: "4px 6px", fontSize: 10.5, width: 70 }}
+              placeholder="Zeit"
+              value={t.zeit}
+              onChange={(e) => onUpdate("zeit", e.target.value)}
+            />
+          </div>
+          <ThemaField label="Key Points" value={t.keypoints} onChange={(v) => onUpdate("keypoints", v)} color={C.purpleLight} />
+          <ThemaField label="Mindmap / Struktur" value={t.mindmap} onChange={(v) => onUpdate("mindmap", v)} color={C.amber} />
+          <ThemaField label="Offene Fragen" value={t.offeneFragen} onChange={(v) => onUpdate("offeneFragen", v)} color={"#F09595"} />
+          <ThemaField label="Verwechslungen / Fallen" value={t.verwechslungen ?? ""} onChange={(v) => onUpdate("verwechslungen", v)} color={"#5DCAA5"} />
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            <button style={{ ...s.smallBtn(C.amber), padding: "5px 10px", fontSize: 10.5 }} onClick={onAiFill} disabled={aiLoading}>
+              {aiLoading ? "…" : "✦ KI-Fill"}
+            </button>
+            <button style={{ ...s.smallBtn(C.purpleLight), padding: "5px 10px", fontSize: 10.5 }} onClick={onGenerateCards} disabled={aiLoading}>
+              🎴 Flashcards
+            </button>
+            <button style={{ ...s.smallBtn(C.red), padding: "5px 10px", fontSize: 10.5, marginLeft: "auto" }} onClick={onDelete}>
+              ✕ Löschen
+            </button>
+          </div>
+          {flashcards && flashcards.length > 0 && (
+            <div style={{ padding: 10, background: C.surface, borderRadius: 8, border: `1px solid ${C.border}` }}>
+              <div style={{ display: "flex", alignItems: "center", marginBottom: 6, gap: 6 }}>
+                <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em" }}>{flashcards.length} Karten</div>
+                <button style={{ ...s.smallBtn(C.purple), padding: "2px 8px", fontSize: 10, marginLeft: "auto" }} onClick={toggleFlashcards}>
+                  {showFlashcards ? "Einklappen" : "Üben"}
+                </button>
+                <button style={{ ...s.smallBtn(C.red), padding: "2px 8px", fontSize: 10 }} onClick={deleteFlashcards}>Löschen</button>
+              </div>
+              {showFlashcards && <FlashcardView cards={flashcards} onClose={toggleFlashcards} />}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 
 function ThemaField({ label, value, onChange, color }: { label: string; value: string; onChange: (v: string) => void; color: string }) {
   return (
