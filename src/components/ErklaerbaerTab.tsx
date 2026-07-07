@@ -63,8 +63,16 @@ export function ErklaerbaerTab({ klausur, systemPrompt, contextFiles, update }: 
 
   return (
     <div style={{ display: "grid", gap: 16 }}>
-      <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 18 }}>
-        <div style={{ fontSize: 14, fontWeight: 700, color: C.purpleLight, marginBottom: 12 }}>🧑‍🏫 Erklärbär</div>
+      <div
+        style={{
+          background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))",
+          border: `1px solid rgba(255,255,255,0.08)`,
+          borderRadius: 16,
+          padding: 18,
+          boxShadow: "0 4px 20px -8px rgba(0,0,0,0.3)",
+        }}
+      >
+        <div style={{ fontSize: 14, fontWeight: 700, color: C.purpleLight, marginBottom: 12, letterSpacing: "-0.01em" }}>🧑‍🏫 Erklärbär</div>
         <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
           {MODI.map((m) => (
             <button key={m.id} style={s.tabBtn(mode === m.id, C.purple)} onClick={() => setMode(m.id)}>
@@ -72,35 +80,105 @@ export function ErklaerbaerTab({ klausur, systemPrompt, contextFiles, update }: 
             </button>
           ))}
         </div>
-        <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 8 }}>{MODI.find((m) => m.id === mode)?.hint}</div>
+        <div style={{ fontSize: 11.5, color: C.textMuted, marginBottom: 10, lineHeight: 1.5 }}>{MODI.find((m) => m.id === mode)?.hint}</div>
         <textarea
           style={{ ...s.ta, minHeight: 90 }}
           placeholder="Was willst du verstehen? Sei konkret…"
           value={frage}
           onChange={(e) => setFrage(e.target.value)}
         />
-        <button style={{ ...s.btnP, width: "auto", padding: "9px 22px" }} onClick={() => void ask()} disabled={loading}>
+        <button
+          style={{
+            background: `linear-gradient(135deg, ${C.purple}, ${C.purpleLight})`,
+            color: "#fff",
+            border: "none",
+            borderRadius: 10,
+            padding: "9px 22px",
+            fontSize: 13,
+            fontWeight: 600,
+            cursor: loading ? "wait" : "pointer",
+            boxShadow: `0 4px 14px -4px ${C.purple}88`,
+          }}
+          onClick={() => void ask()}
+          disabled={loading}
+        >
           {loading ? "Denke nach…" : "✦ Erkläre es mir"}
         </button>
         {error && <div style={{ color: "#F09595", fontSize: 12, marginTop: 8 }}>{error}</div>}
       </div>
 
       {eintraege.map((e) => (
-        <div key={e.id} style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 16 }}>
-          <div style={{ display: "flex", alignItems: "start", gap: 10, marginBottom: 8 }}>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 10, color: C.textDim, marginBottom: 3 }}>{new Date(e.date).toLocaleString("de-DE")}</div>
-              <div style={{ fontSize: 13, color: C.amber, fontWeight: 600, lineHeight: 1.4 }}>❓ {e.frage}</div>
-            </div>
-            <button style={s.smallBtn(C.red)} onClick={() => del(e.id)}>
-              ✕
-            </button>
+        <div
+          key={e.id}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+            background: "rgba(255,255,255,0.02)",
+            border: `1px solid rgba(255,255,255,0.06)`,
+            borderRadius: 16,
+            padding: 14,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+            <div style={{ fontSize: 10, color: C.textDim }}>{new Date(e.date).toLocaleString("de-DE")}</div>
+            <button style={s.smallBtn(C.red)} onClick={() => del(e.id)}>✕</button>
           </div>
-          <div style={{ fontSize: 13, color: C.text, whiteSpace: "pre-wrap", lineHeight: 1.65, paddingTop: 8, borderTop: `1px solid ${C.border}` }}>
-            {e.antwort}
+          {/* User-Bubble */}
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <div
+              style={{
+                background: `linear-gradient(135deg, ${C.amber}, ${C.amber}dd)`,
+                color: "#fff",
+                borderRadius: "18px 18px 4px 18px",
+                padding: "10px 14px",
+                maxWidth: "85%",
+                fontSize: 13,
+                lineHeight: 1.5,
+                fontWeight: 500,
+                boxShadow: `0 4px 12px -4px ${C.amber}55`,
+              }}
+            >
+              {e.frage}
+            </div>
+          </div>
+          {/* KI-Bubble */}
+          <div style={{ display: "flex", justifyContent: "flex-start", alignItems: "flex-end", gap: 8 }}>
+            <div
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                background: `linear-gradient(135deg, ${C.purple}, ${C.purpleLight})`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 13,
+                color: "#fff",
+                flexShrink: 0,
+              }}
+            >
+              ✦
+            </div>
+            <div
+              style={{
+                background: "rgba(127,119,221,0.08)",
+                border: `1px solid ${C.purple}22`,
+                color: C.text,
+                borderRadius: "18px 18px 18px 4px",
+                padding: "12px 16px",
+                maxWidth: "90%",
+                fontSize: 13,
+                lineHeight: 1.65,
+                whiteSpace: "pre-wrap",
+              }}
+            >
+              {e.antwort}
+            </div>
           </div>
         </div>
       ))}
     </div>
   );
 }
+
