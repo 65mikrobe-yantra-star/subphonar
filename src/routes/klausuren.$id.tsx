@@ -801,21 +801,33 @@ function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill,
 
 function ThemaField({ label, value, onChange, color }: { label: string; value: string; onChange: (v: string) => void; color: string }) {
   return (
-    <div>
-      <div style={{ fontSize: 9, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{label}</div>
+    <div
+      style={{
+        background: color + "0f",
+        borderRadius: 10,
+        padding: "10px 12px 10px 14px",
+        borderLeft: `3px solid ${color}`,
+        border: `1px solid ${color}22`,
+        borderLeftWidth: 3,
+      }}
+    >
+      <div style={{ fontSize: 9.5, color: color, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6, fontWeight: 700, opacity: 0.85 }}>
+        {label}
+      </div>
       <textarea
         style={{
-          background: "#1a1a2a",
-          border: `1px solid ${C.border}`,
-          borderRadius: 6,
-          color,
-          padding: "6px 10px",
-          fontSize: 11,
+          background: "transparent",
+          border: "none",
+          color: C.text,
+          padding: 0,
+          fontSize: 12.5,
           width: "100%",
-          minHeight: 60,
+          minHeight: 54,
           boxSizing: "border-box",
           resize: "vertical",
           fontFamily: "inherit",
+          outline: "none",
+          lineHeight: 1.55,
         }}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -824,6 +836,7 @@ function ThemaField({ label, value, onChange, color }: { label: string; value: s
     </div>
   );
 }
+
 
 function RenderMarkdown({ text }: { text: string }) {
   return (
