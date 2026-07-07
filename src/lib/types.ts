@@ -31,6 +31,10 @@ export type MindmapStroke = {
   width: number;
   /** alternierend x,y Punkte */
   points: number[];
+  /** Wenn gesetzt: statt Linie wird an points[0..1] Text gerendert */
+  text?: string;
+  /** Schriftgröße für Text-Stroke */
+  fontSize?: number;
 };
 
 export type MockExamQuestion = {
