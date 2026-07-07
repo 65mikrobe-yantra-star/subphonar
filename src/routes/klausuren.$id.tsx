@@ -652,67 +652,97 @@ function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill,
   return (
     <div
       style={{
-        background: C.surfaceHigh,
-        border: `1px solid ${C.border}`,
-        borderRadius: 12,
-        padding: 12,
+        background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))",
+        backdropFilter: "blur(10px)",
+        border: `1px solid rgba(255,255,255,0.08)`,
+        borderRadius: 16,
+        padding: 16,
         display: "flex",
         flexDirection: "column",
-        gap: 8,
-        transition: "border-color 120ms, transform 120ms",
+        gap: 12,
+        boxShadow: "0 4px 20px -8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)",
+        transition: "transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease",
       }}
     >
       {/* Header */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
         <input
-          style={{ background: "transparent", border: "none", color: C.text, fontSize: 13.5, fontWeight: 600, flex: 1, outline: "none", padding: 0, letterSpacing: "-0.01em" }}
+          style={{ background: "transparent", border: "none", color: C.text, fontSize: 15, fontWeight: 700, flex: 1, outline: "none", padding: 0, letterSpacing: "-0.015em", lineHeight: 1.3 }}
           value={t.name}
           onChange={(e) => onUpdate("name", e.target.value)}
         />
         <button
-          style={{ background: "transparent", border: "none", color: C.textDim, cursor: "pointer", fontSize: 14, padding: "0 4px" }}
+          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: C.textMuted, cursor: "pointer", fontSize: 11, padding: "4px 10px", borderRadius: 8 }}
           onClick={onToggle}
           title={expanded ? "Einklappen" : "Details"}
         >
-          {expanded ? "▴" : "▾"}
+          {expanded ? "▴ weniger" : "▾ mehr"}
         </button>
       </div>
 
-      {/* Badge-Zeile: Typ · Prio · Zeit */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-        <span style={{ ...s.pill(typ.color + "22", typ.color), fontSize: 10, padding: "2px 8px" }}>{typ.icon} {typ.label}</span>
-        <span style={{ ...s.pill(pc.bg + "22", pc.bg), fontSize: 10, padding: "2px 8px" }}>◆ {pc.label}</span>
-        {t.zeit && <span style={{ ...s.pill(C.border, C.textMuted), fontSize: 10, padding: "2px 8px" }}>⏱ {t.zeit}</span>}
+      {/* Badge-Zeile */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        <span style={{ background: typ.color + "1a", color: typ.color, fontSize: 10.5, padding: "3px 10px", borderRadius: 99, fontWeight: 600, border: `1px solid ${typ.color}33` }}>
+          {typ.icon} {typ.label}
+        </span>
+        <span style={{ background: pc.bg + "1a", color: pc.bg, fontSize: 10.5, padding: "3px 10px", borderRadius: 99, fontWeight: 600, border: `1px solid ${pc.bg}33` }}>
+          ● {pc.label}
+        </span>
+        {t.zeit && (
+          <span style={{ background: "rgba(255,255,255,0.04)", color: C.textMuted, fontSize: 10.5, padding: "3px 10px", borderRadius: 99, border: `1px solid rgba(255,255,255,0.08)` }}>
+            ⏱ {t.zeit}
+          </span>
+        )}
       </div>
 
-      {/* Relevanz-Bar */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <span style={{ fontSize: 9, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em", width: 55 }}>Relevanz</span>
-        <div style={{ flex: 1, display: "flex", gap: 3 }}>
-          {[1, 2, 3, 4, 5].map((n) => (
-            <button
-              key={n}
-              onClick={() => onUpdate("relevanz", n)}
-              style={{
-                flex: 1,
-                height: 5,
-                borderRadius: 99,
-                background: n <= relevanz ? pc.bg : C.border,
-                border: "none",
-                cursor: "pointer",
-                padding: 0,
-              }}
-              title={`Relevanz ${n}/5`}
-            />
-          ))}
+      {/* Relevanz — dünner Gradient-Progress */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span style={{ fontSize: 9.5, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600 }}>Relevanz</span>
+        <div
+          style={{
+            flex: 1,
+            height: 6,
+            borderRadius: 99,
+            background: "rgba(255,255,255,0.06)",
+            overflow: "hidden",
+            position: "relative",
+            cursor: "pointer",
+          }}
+          onClick={(e) => {
+            const r = e.currentTarget.getBoundingClientRect();
+            const v = Math.max(1, Math.min(5, Math.round(((e.clientX - r.left) / r.width) * 5)));
+            onUpdate("relevanz", v);
+          }}
+          title="Klicken zum Setzen"
+        >
+          <div
+            style={{
+              width: `${(relevanz / 5) * 100}%`,
+              height: "100%",
+              background: `linear-gradient(90deg, ${pc.bg}, ${pc.bg}dd)`,
+              borderRadius: 99,
+              transition: "width 200ms ease",
+              boxShadow: `0 0 8px ${pc.bg}66`,
+            }}
+          />
         </div>
+        <span style={{ fontSize: 11, color: pc.bg, fontWeight: 700, minWidth: 24, textAlign: "right" }}>{relevanz}/5</span>
       </div>
 
-      {/* Lernstatus */}
-      <div style={{ display: "flex", gap: 4, marginTop: 2 }}>
+      {/* Lernstatus — segmentierte Pill-Row */}
+      <div
+        style={{
+          display: "flex",
+          background: "rgba(255,255,255,0.04)",
+          borderRadius: 10,
+          padding: 3,
+          border: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
         {(["offen", "lernend", "sitzt"] as Lernstatus[]).map((st) => {
           const active = (t.lernstatus ?? "offen") === st;
           const color = st === "offen" ? C.purple : st === "lernend" ? C.amber : C.teal;
+          const label = st === "offen" ? "Offen" : st === "lernend" ? "Am Lernen" : "Sitzt";
           return (
             <button
               key={st}
@@ -720,17 +750,17 @@ function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill,
               style={{
                 flex: 1,
                 background: active ? color + "22" : "transparent",
-                border: `1px solid ${active ? color + "66" : C.border}`,
+                border: active ? `1px solid ${color}55` : "1px solid transparent",
                 color: active ? color : C.textMuted,
-                borderRadius: 6,
-                padding: "3px 4px",
-                fontSize: 10,
+                borderRadius: 8,
+                padding: "5px 6px",
+                fontSize: 11,
                 cursor: "pointer",
-                fontWeight: active ? 600 : 400,
-                textTransform: "capitalize",
+                fontWeight: active ? 700 : 500,
+                transition: "all 150ms ease",
               }}
             >
-              {st}
+              {label}
             </button>
           );
         })}
@@ -738,12 +768,12 @@ function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill,
 
       {/* Expanded */}
       {expanded && (
-        <div style={{ display: "grid", gap: 8, marginTop: 4, paddingTop: 10, borderTop: `1px solid ${C.border}` }}>
+        <div style={{ display: "grid", gap: 10, paddingTop: 10, borderTop: `1px solid rgba(255,255,255,0.06)` }}>
           <div style={{ display: "flex", gap: 6 }}>
             <select
               value={t.typ ?? "theorie"}
               onChange={(e) => onUpdate("typ", e.target.value as AufgabenTyp)}
-              style={{ ...s.sel, marginBottom: 0, padding: "4px 6px", fontSize: 10.5, flex: 1 }}
+              style={{ ...s.sel, marginBottom: 0, padding: "5px 8px", fontSize: 11, flex: 1 }}
             >
               {Object.entries(TYP_LABELS).map(([k, v]) => (
                 <option key={k} value={k}>{v.label}</option>
@@ -752,14 +782,14 @@ function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill,
             <select
               value={t.prioritaet}
               onChange={(e) => onUpdate("prioritaet", e.target.value as Prioritaet)}
-              style={{ ...s.sel, marginBottom: 0, padding: "4px 6px", fontSize: 10.5, flex: 1 }}
+              style={{ ...s.sel, marginBottom: 0, padding: "5px 8px", fontSize: 11, flex: 1 }}
             >
               <option value="hoch">Hoch</option>
               <option value="mittel">Mittel</option>
               <option value="niedrig">Niedrig</option>
             </select>
             <input
-              style={{ ...s.inp, marginBottom: 0, padding: "4px 6px", fontSize: 10.5, width: 70 }}
+              style={{ ...s.inp, marginBottom: 0, padding: "5px 8px", fontSize: 11, width: 70 }}
               placeholder="Zeit"
               value={t.zeit}
               onChange={(e) => onUpdate("zeit", e.target.value)}
@@ -769,25 +799,77 @@ function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill,
           <ThemaField label="Mindmap / Struktur" value={t.mindmap} onChange={(v) => onUpdate("mindmap", v)} color={C.amber} />
           <ThemaField label="Offene Fragen" value={t.offeneFragen} onChange={(v) => onUpdate("offeneFragen", v)} color={"#F09595"} />
           <ThemaField label="Verwechslungen / Fallen" value={t.verwechslungen ?? ""} onChange={(v) => onUpdate("verwechslungen", v)} color={"#5DCAA5"} />
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            <button style={{ ...s.smallBtn(C.amber), padding: "5px 10px", fontSize: 10.5 }} onClick={onAiFill} disabled={aiLoading}>
+
+          {/* Unified Action-Row */}
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 2 }}>
+            <button
+              onClick={onAiFill}
+              disabled={aiLoading}
+              style={{
+                background: aiLoading ? "rgba(239,159,39,0.15)" : `linear-gradient(135deg, ${C.amber}, ${C.amber}dd)`,
+                color: aiLoading ? C.amber : "#fff",
+                border: "none",
+                borderRadius: 9,
+                padding: "7px 14px",
+                fontSize: 11.5,
+                fontWeight: 600,
+                cursor: aiLoading ? "wait" : "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+                boxShadow: aiLoading ? "none" : `0 4px 12px -4px ${C.amber}88`,
+              }}
+            >
               {aiLoading ? "…" : "✦ KI-Fill"}
             </button>
-            <button style={{ ...s.smallBtn(C.purpleLight), padding: "5px 10px", fontSize: 10.5 }} onClick={onGenerateCards} disabled={aiLoading}>
+            <button
+              onClick={onGenerateCards}
+              disabled={aiLoading}
+              style={{
+                background: "rgba(175,169,236,0.15)",
+                color: C.purpleLight,
+                border: `1px solid ${C.purpleLight}44`,
+                borderRadius: 9,
+                padding: "7px 14px",
+                fontSize: 11.5,
+                fontWeight: 600,
+                cursor: "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+              }}
+            >
               🎴 Flashcards
             </button>
-            <button style={{ ...s.smallBtn(C.red), padding: "5px 10px", fontSize: 10.5, marginLeft: "auto" }} onClick={onDelete}>
-              ✕ Löschen
+            <button
+              onClick={onDelete}
+              style={{
+                marginLeft: "auto",
+                background: "transparent",
+                color: "#F09595",
+                border: `1px solid ${C.red}44`,
+                borderRadius: 9,
+                padding: "7px 12px",
+                fontSize: 11.5,
+                cursor: "pointer",
+              }}
+            >
+              ✕
             </button>
           </div>
+
           {flashcards && flashcards.length > 0 && (
-            <div style={{ padding: 10, background: C.surface, borderRadius: 8, border: `1px solid ${C.border}` }}>
-              <div style={{ display: "flex", alignItems: "center", marginBottom: 6, gap: 6 }}>
-                <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em" }}>{flashcards.length} Karten</div>
-                <button style={{ ...s.smallBtn(C.purple), padding: "2px 8px", fontSize: 10, marginLeft: "auto" }} onClick={toggleFlashcards}>
+            <div style={{ padding: 12, background: "rgba(127,119,221,0.06)", borderRadius: 10, border: `1px solid ${C.purple}22` }}>
+              <div style={{ display: "flex", alignItems: "center", marginBottom: 8, gap: 8 }}>
+                <div style={{ fontSize: 10.5, color: C.purpleLight, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700 }}>
+                  🎴 {flashcards.length} Karten
+                </div>
+                <button style={{ marginLeft: "auto", background: C.purple, color: "#fff", border: "none", borderRadius: 8, padding: "5px 12px", fontSize: 11, fontWeight: 600, cursor: "pointer" }} onClick={toggleFlashcards}>
                   {showFlashcards ? "Einklappen" : "Üben"}
                 </button>
-                <button style={{ ...s.smallBtn(C.red), padding: "2px 8px", fontSize: 10 }} onClick={deleteFlashcards}>Löschen</button>
+                <button style={{ background: "transparent", color: "#F09595", border: `1px solid ${C.red}44`, borderRadius: 8, padding: "5px 10px", fontSize: 11, cursor: "pointer" }} onClick={deleteFlashcards}>
+                  Löschen
+                </button>
               </div>
               {showFlashcards && <FlashcardView cards={flashcards} onClose={toggleFlashcards} />}
             </div>
@@ -799,23 +881,37 @@ function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill,
 }
 
 
+
+
 function ThemaField({ label, value, onChange, color }: { label: string; value: string; onChange: (v: string) => void; color: string }) {
   return (
-    <div>
-      <div style={{ fontSize: 9, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>{label}</div>
+    <div
+      style={{
+        background: color + "0f",
+        borderRadius: 10,
+        padding: "10px 12px 10px 14px",
+        borderLeft: `3px solid ${color}`,
+        border: `1px solid ${color}22`,
+        borderLeftWidth: 3,
+      }}
+    >
+      <div style={{ fontSize: 9.5, color: color, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6, fontWeight: 700, opacity: 0.85 }}>
+        {label}
+      </div>
       <textarea
         style={{
-          background: "#1a1a2a",
-          border: `1px solid ${C.border}`,
-          borderRadius: 6,
-          color,
-          padding: "6px 10px",
-          fontSize: 11,
+          background: "transparent",
+          border: "none",
+          color: C.text,
+          padding: 0,
+          fontSize: 12.5,
           width: "100%",
-          minHeight: 60,
+          minHeight: 54,
           boxSizing: "border-box",
           resize: "vertical",
           fontFamily: "inherit",
+          outline: "none",
+          lineHeight: 1.55,
         }}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -824,6 +920,7 @@ function ThemaField({ label, value, onChange, color }: { label: string; value: s
     </div>
   );
 }
+
 
 function RenderMarkdown({ text }: { text: string }) {
   return (
