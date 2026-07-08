@@ -147,8 +147,9 @@ Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"
   const quote = HARVEY_QUOTES[quoteIdx];
 
   return (
-    <div style={s.app}>
+    <div style={s.app} className="app-shell">
       <AppNav />
+
       <div style={s.main(aiOpen)}>
         <DailyHeader vocabTotal={5} />
         {/* Hero mit Subby (großes Monster) */}
