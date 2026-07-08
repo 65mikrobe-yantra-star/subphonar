@@ -142,3 +142,35 @@
     color: var(--color-foreground);
   }
 }
+
+/* ============================================================
+   Subphonar — Chrome-Theme (data-theme swap)
+   Light mode overrides for body chrome. Component-level inline
+   styles still use the dark palette from constants.ts until a
+   full CSS-var migration lands.
+   ============================================================ */
+html[data-theme="light"] body {
+  background: #F5F6FA !important;
+  color: #1a1a2a;
+}
+html[data-theme="light"] .app-shell {
+  background: linear-gradient(180deg, #F5F6FA 0%, #EEF0F7 100%) !important;
+  color: #1a1a2a !important;
+}
+html[data-theme="light"] .app-nav {
+  background: rgba(255,255,255,0.85) !important;
+  border-bottom-color: rgba(0,0,0,0.06) !important;
+}
+html[data-theme="light"] .app-nav a[data-inactive="true"] {
+  color: #555 !important;
+}
+
+/* Reduzierte Motion respektieren — Monster animiert dann nur minimal */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+

@@ -3,6 +3,8 @@ import { LayoutDashboard, GraduationCap, CalendarClock, CheckSquare } from "luci
 import { APP_NAME } from "@/lib/constants";
 import { C } from "@/lib/constants";
 import type { CSSProperties } from "react";
+import { MonsterHead } from "./MonsterHead";
+import { ThemeToggle } from "./ThemeToggle";
 
 const TABS = [
   { to: "/", label: "Dashboard", Icon: LayoutDashboard },
@@ -19,7 +21,6 @@ const navStyle: CSSProperties = {
   borderBottom: `1px solid ${C.purple}22`,
   background: "rgba(15,16,24,0.55)",
   backdropFilter: "blur(18px) saturate(160%)",
-  WebkitBackdropFilter: "blur(18px) saturate(160%)",
   position: "sticky",
   top: 0,
   zIndex: 100,
@@ -28,7 +29,7 @@ const navStyle: CSSProperties = {
 export function AppNav() {
   const loc = useLocation();
   return (
-    <nav style={navStyle}>
+    <nav style={navStyle} className="app-nav">
       <span
         style={{
           fontSize: 15,
@@ -49,6 +50,7 @@ export function AppNav() {
             key={to}
             to={to}
             title={label}
+            data-inactive={!active}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -63,24 +65,17 @@ export function AppNav() {
               border: `1px solid ${active ? C.purple + "66" : "transparent"}`,
               transition: "all 160ms ease",
             }}
-            onMouseEnter={(e) => {
-              if (!active) {
-                e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-                e.currentTarget.style.color = C.text;
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!active) {
-                e.currentTarget.style.background = "transparent";
-                e.currentTarget.style.color = C.textMuted;
-              }
-            }}
           >
             <Icon size={15} strokeWidth={2.1} />
             <span>{label}</span>
           </Link>
         );
       })}
+      <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
+        <ThemeToggle />
+        <MonsterHead />
+      </div>
     </nav>
   );
 }
+

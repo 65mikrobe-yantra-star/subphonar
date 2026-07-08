@@ -11,6 +11,9 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { ThemeProvider } from "../lib/theme";
+import { MonsterProvider } from "../lib/monster";
+
 
 function NotFoundComponent() {
   return (
@@ -77,18 +80,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Upload and share JSX files, generate explanations, and create flashcards with AI assistance." },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Upload and share JSX files, generate explanations, and create flashcards with AI assistance." },
+      { title: "Subphonar — Dein KI-Lern-Cockpit" },
+      { name: "description", content: "Subphonar hilft Schülern beim Lernen: Klausurvorbereitung, Karteikarten, Tagesplan und ein motivierendes Maskottchen — alles in einem cleanen Dashboard." },
+      { name: "author", content: "Subphonar" },
+      { property: "og:title", content: "Subphonar — Dein KI-Lern-Cockpit" },
+      { property: "og:description", content: "Klausurvorbereitung, Karteikarten & Tagesplan mit KI — plus Subby, dein motivierender Mini-Drache." },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
-      { name: "twitter:title", content: "Lovable App" },
-      { name: "twitter:description", content: "Upload and share JSX files, generate explanations, and create flashcards with AI assistance." },
-      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a7e22468-d37a-4da1-a0bc-bf9daaa66040/id-preview-8ced99e9--6ae59ff0-f214-47e6-ae6a-f0f59888db41.lovable.app-1781019532966.png" },
-      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/a7e22468-d37a-4da1-a0bc-bf9daaa66040/id-preview-8ced99e9--6ae59ff0-f214-47e6-ae6a-f0f59888db41.lovable.app-1781019532966.png" },
+      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Subphonar — Dein KI-Lern-Cockpit" },
+      { name: "twitter:description", content: "Klausurvorbereitung, Karteikarten & Tagesplan mit KI — plus Subby, dein motivierender Mini-Drache." },
     ],
     links: [
       {
@@ -105,7 +105,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="de">
       <head>
         <HeadContent />
       </head>
@@ -122,8 +122,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <ThemeProvider>
+        <MonsterProvider>
+          <Outlet />
+        </MonsterProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
+

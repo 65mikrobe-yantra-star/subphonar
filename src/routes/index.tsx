@@ -4,14 +4,17 @@ import { useServerFn } from "@tanstack/react-start";
 import { AppNav } from "@/components/AppNav";
 import { AiPanel } from "@/components/AiPanel";
 import { DailyBrief } from "@/components/DailyBrief";
-import { DailyHeader } from "@/components/DailyHeader";
+import { DailyHeader, useDailyStreak } from "@/components/DailyHeader";
+import { Monster } from "@/components/Monster";
+import { SOSButton } from "@/components/SOSButton";
+import { useMonster } from "@/lib/monster";
 import { APP_NAME, C, FAECHER_DEFAULT, HARVEY_QUOTES, PERSONA_PREFIX } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
 import { avg, cleanMarkdown, formatDate, isOverdue, punkte2Note } from "@/lib/helpers";
 import { chat } from "@/lib/ai.functions";
 import type { Fach, Klausur, Todo } from "@/lib/types";
-import harveyBg from "@/assets/harvey-bg.jpg";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -34,10 +37,19 @@ function Dashboard() {
   const [plan, setPlan] = useLocalStorage<string>("sub.dashboard.plan", "");
   const [planLoading, setPlanLoading] = useState(false);
   const chatFn = useServerFn(chat);
+  const streak = useDailyStreak();
+  const { state: monsterState, fire } = useMonster();
 
   useEffect(() => {
     setQuoteIdx(Math.floor(Math.random() * HARVEY_QUOTES.length));
   }, []);
+
+  // Beim ersten Mount: Streak feiern (einmal pro Tag reicht — Provider löscht nach 4.5s wieder)
+  useEffect(() => {
+    if (streak > 0) fire("login", { streak });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [streak]);
+
 
   const gesamtschnitt = useMemo(() => {
     const allAvgs = faecher
@@ -61,6 +73,20 @@ function Dashboard() {
 
   const openTodos = useMemo(() => todos.filter((t) => t.status !== "done"), [todos]);
   const overdueTodos = useMemo(() => openTodos.filter((t) => isOverdue(t.due)), [openTodos]);
+
+  // examSoon-Trigger: wenn nächste Klausur ≤ 3 Tage entfernt → Monster in Panik-Modus
+  useEffect(() => {
+    const next = upcomingKlausuren[0];
+    if (!next) return;
+    const daysLeft = Math.ceil((new Date(next.datum).getTime() - Date.now()) / 86400000);
+    if (daysLeft <= 3 && daysLeft >= 0) {
+      const t = setTimeout(() => fire("examSoon"), 6000); // erst nach Login-Feier zeigen
+      return () => clearTimeout(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [upcomingKlausuren]);
+
+
 
   const systemPrompt = `${PERSONA_PREFIX}
 Du bist Subphonar, Johannas persönlicher Lern-Coach. Aktueller Stand: Gesamtschnitt ${
@@ -121,48 +147,54 @@ Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"
   const quote = HARVEY_QUOTES[quoteIdx];
 
   return (
-    <div style={s.app}>
+    <div style={s.app} className="app-shell">
       <AppNav />
+
       <div style={s.main(aiOpen)}>
         <DailyHeader vocabTotal={5} />
-        {/* Hero with Harvey background */}
+        {/* Hero mit Subby (großes Monster) */}
         <div
           style={{
             position: "relative",
-            backgroundImage: `linear-gradient(115deg, rgba(15,15,19,0.92) 0%, rgba(15,15,19,0.7) 45%, rgba(127,119,221,0.32) 100%), url(${harveyBg})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center right",
-            border: `1px solid ${C.purple}55`,
-            borderRadius: 18,
-            padding: "32px 34px",
+            background: `linear-gradient(135deg, ${C.purple}15 0%, ${C.amber}12 100%)`,
+            border: `1px solid ${C.purple}33`,
+            borderRadius: 24,
+            padding: "24px 28px",
             marginBottom: 20,
-            boxShadow: `0 12px 40px -12px ${C.purple}55, inset 0 1px 0 rgba(255,255,255,0.05)`,
+            display: "flex",
+            alignItems: "center",
+            gap: 24,
             overflow: "hidden",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", marginBottom: 10, gap: 8 }}>
-            <div style={{ fontSize: 10, color: C.purpleLight, letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 600 }}>
+          <div style={{ flexShrink: 0 }}>
+            <Monster state={monsterState === "idle" ? "watching" : monsterState} size={140} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 10, color: C.purpleLight, letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 700, marginBottom: 8 }}>
               ✦ Willkommen zurück, Johanna
             </div>
-            <button
-              style={{ ...s.smallBtn(C.amber), marginLeft: "auto", padding: "5px 11px", fontSize: 11 }}
-              onClick={() => setQuoteIdx((i) => (i + 1) % HARVEY_QUOTES.length)}
-              title="Neues Zitat"
-            >
-              🔄
-            </button>
-            <button
-              style={{ ...s.smallBtn(C.purple), padding: "5px 12px", fontSize: 11 }}
-              onClick={() => setAiOpen(!aiOpen)}
-            >
-              ✦ KI-Chat
-            </button>
+            <div style={{ fontSize: 20, fontWeight: 700, color: C.text, lineHeight: 1.4, marginBottom: 8, fontStyle: "italic" }}>
+              „{quote.quote}"
+            </div>
+            <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 14 }}>— Harvey Specter · {quote.context}</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button
+                style={{ ...s.smallBtn(C.amber), padding: "6px 12px", fontSize: 11 }}
+                onClick={() => setQuoteIdx((i) => (i + 1) % HARVEY_QUOTES.length)}
+              >
+                🔄 Neues Zitat
+              </button>
+              <button
+                style={{ ...s.smallBtn(C.purple), padding: "6px 12px", fontSize: 11 }}
+                onClick={() => setAiOpen(!aiOpen)}
+              >
+                ✦ KI-Chat
+              </button>
+            </div>
           </div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", lineHeight: 1.4, marginBottom: 6, fontStyle: "italic", textShadow: "0 2px 12px rgba(0,0,0,0.6)", maxWidth: "78%" }}>
-            „{quote.quote}"
-          </div>
-          <div style={{ fontSize: 12, color: C.purpleLight, textShadow: "0 1px 6px rgba(0,0,0,0.7)" }}>— Harvey Specter · {quote.context}</div>
         </div>
+
 
         {/* Daily Brief: 5 Englisch-Vokabeln + 1 Finanz-Thema (mit 🔄 Wechsel-Button) */}
         <DailyBrief />
@@ -311,9 +343,11 @@ Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"
         )}
       </div>
       <AiPanel show={aiOpen} onClose={() => setAiOpen(false)} systemPrompt={systemPrompt} extraContext="Dashboard" />
+      <SOSButton onShrinkPlan={() => setPlan("🎯 Plan halbiert. Fokus heute: nur die eine wichtigste Aufgabe — der Rest kann warten.")} />
     </div>
   );
 }
+
 
 function StatCard({ label, value, color, link, sub }: { label: string; value: string; color: string; link: string; sub: string }) {
   return (
