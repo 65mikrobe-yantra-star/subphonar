@@ -4,14 +4,17 @@ import { useServerFn } from "@tanstack/react-start";
 import { AppNav } from "@/components/AppNav";
 import { AiPanel } from "@/components/AiPanel";
 import { DailyBrief } from "@/components/DailyBrief";
-import { DailyHeader } from "@/components/DailyHeader";
+import { DailyHeader, useDailyStreak } from "@/components/DailyHeader";
+import { Monster } from "@/components/Monster";
+import { SOSButton } from "@/components/SOSButton";
+import { useMonster } from "@/lib/monster";
 import { APP_NAME, C, FAECHER_DEFAULT, HARVEY_QUOTES, PERSONA_PREFIX } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
 import { avg, cleanMarkdown, formatDate, isOverdue, punkte2Note } from "@/lib/helpers";
 import { chat } from "@/lib/ai.functions";
 import type { Fach, Klausur, Todo } from "@/lib/types";
-import harveyBg from "@/assets/harvey-bg.jpg";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
