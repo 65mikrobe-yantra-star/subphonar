@@ -128,44 +128,49 @@ Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"
       <AppNav />
       <div style={s.main(aiOpen)}>
         <DailyHeader vocabTotal={5} />
-        {/* Hero with Harvey background */}
+        {/* Hero mit Subby (großes Monster) */}
         <div
           style={{
             position: "relative",
-            backgroundImage: `linear-gradient(115deg, rgba(15,15,19,0.92) 0%, rgba(15,15,19,0.7) 45%, rgba(127,119,221,0.32) 100%), url(${harveyBg})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center right",
-            border: `1px solid ${C.purple}55`,
-            borderRadius: 18,
-            padding: "32px 34px",
+            background: `linear-gradient(135deg, ${C.purple}15 0%, ${C.amber}12 100%)`,
+            border: `1px solid ${C.purple}33`,
+            borderRadius: 24,
+            padding: "24px 28px",
             marginBottom: 20,
-            boxShadow: `0 12px 40px -12px ${C.purple}55, inset 0 1px 0 rgba(255,255,255,0.05)`,
+            display: "flex",
+            alignItems: "center",
+            gap: 24,
             overflow: "hidden",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", marginBottom: 10, gap: 8 }}>
-            <div style={{ fontSize: 10, color: C.purpleLight, letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 600 }}>
+          <div style={{ flexShrink: 0 }}>
+            <Monster state={monsterState === "idle" ? "watching" : monsterState} size={140} />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 10, color: C.purpleLight, letterSpacing: "0.18em", textTransform: "uppercase", fontWeight: 700, marginBottom: 8 }}>
               ✦ Willkommen zurück, Johanna
             </div>
-            <button
-              style={{ ...s.smallBtn(C.amber), marginLeft: "auto", padding: "5px 11px", fontSize: 11 }}
-              onClick={() => setQuoteIdx((i) => (i + 1) % HARVEY_QUOTES.length)}
-              title="Neues Zitat"
-            >
-              🔄
-            </button>
-            <button
-              style={{ ...s.smallBtn(C.purple), padding: "5px 12px", fontSize: 11 }}
-              onClick={() => setAiOpen(!aiOpen)}
-            >
-              ✦ KI-Chat
-            </button>
+            <div style={{ fontSize: 20, fontWeight: 700, color: C.text, lineHeight: 1.4, marginBottom: 8, fontStyle: "italic" }}>
+              „{quote.quote}"
+            </div>
+            <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 14 }}>— Harvey Specter · {quote.context}</div>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button
+                style={{ ...s.smallBtn(C.amber), padding: "6px 12px", fontSize: 11 }}
+                onClick={() => setQuoteIdx((i) => (i + 1) % HARVEY_QUOTES.length)}
+              >
+                🔄 Neues Zitat
+              </button>
+              <button
+                style={{ ...s.smallBtn(C.purple), padding: "6px 12px", fontSize: 11 }}
+                onClick={() => setAiOpen(!aiOpen)}
+              >
+                ✦ KI-Chat
+              </button>
+            </div>
           </div>
-          <div style={{ fontSize: 22, fontWeight: 700, color: "#fff", lineHeight: 1.4, marginBottom: 6, fontStyle: "italic", textShadow: "0 2px 12px rgba(0,0,0,0.6)", maxWidth: "78%" }}>
-            „{quote.quote}"
-          </div>
-          <div style={{ fontSize: 12, color: C.purpleLight, textShadow: "0 1px 6px rgba(0,0,0,0.7)" }}>— Harvey Specter · {quote.context}</div>
         </div>
+
 
         {/* Daily Brief: 5 Englisch-Vokabeln + 1 Finanz-Thema (mit 🔄 Wechsel-Button) */}
         <DailyBrief />
