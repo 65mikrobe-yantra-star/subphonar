@@ -328,9 +328,11 @@ Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"
         )}
       </div>
       <AiPanel show={aiOpen} onClose={() => setAiOpen(false)} systemPrompt={systemPrompt} extraContext="Dashboard" />
+      <SOSButton onShrinkPlan={() => setPlan("🎯 Plan halbiert. Fokus heute: nur die eine wichtigste Aufgabe — der Rest kann warten.")} />
     </div>
   );
 }
+
 
 function StatCard({ label, value, color, link, sub }: { label: string; value: string; color: string; link: string; sub: string }) {
   return (
