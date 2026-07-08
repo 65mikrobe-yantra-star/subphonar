@@ -37,10 +37,19 @@ function Dashboard() {
   const [plan, setPlan] = useLocalStorage<string>("sub.dashboard.plan", "");
   const [planLoading, setPlanLoading] = useState(false);
   const chatFn = useServerFn(chat);
+  const streak = useDailyStreak();
+  const { state: monsterState, fire } = useMonster();
 
   useEffect(() => {
     setQuoteIdx(Math.floor(Math.random() * HARVEY_QUOTES.length));
   }, []);
+
+  // Beim ersten Mount: Streak feiern (einmal pro Tag reicht — Provider löscht nach 4.5s wieder)
+  useEffect(() => {
+    if (streak > 0) fire("login", { streak });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [streak]);
+
 
   const gesamtschnitt = useMemo(() => {
     const allAvgs = faecher
