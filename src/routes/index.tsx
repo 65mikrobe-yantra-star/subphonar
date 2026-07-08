@@ -74,6 +74,20 @@ function Dashboard() {
   const openTodos = useMemo(() => todos.filter((t) => t.status !== "done"), [todos]);
   const overdueTodos = useMemo(() => openTodos.filter((t) => isOverdue(t.due)), [openTodos]);
 
+  // examSoon-Trigger: wenn nächste Klausur ≤ 3 Tage entfernt → Monster in Panik-Modus
+  useEffect(() => {
+    const next = upcomingKlausuren[0];
+    if (!next) return;
+    const daysLeft = Math.ceil((new Date(next.datum).getTime() - Date.now()) / 86400000);
+    if (daysLeft <= 3 && daysLeft >= 0) {
+      const t = setTimeout(() => fire("examSoon"), 6000); // erst nach Login-Feier zeigen
+      return () => clearTimeout(t);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [upcomingKlausuren]);
+
+
+
   const systemPrompt = `${PERSONA_PREFIX}
 Du bist Subphonar, Johannas persönlicher Lern-Coach. Aktueller Stand: Gesamtschnitt ${
     gesamtschnitt ? gesamtschnitt.toFixed(2) : "—"
