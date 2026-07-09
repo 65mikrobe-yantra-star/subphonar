@@ -11,7 +11,6 @@ import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
-import { ThemeProvider } from "../lib/theme";
 import { MonsterProvider } from "../lib/monster";
 
 
@@ -122,11 +121,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <MonsterProvider>
-          <Outlet />
-        </MonsterProvider>
-      </ThemeProvider>
+      <MonsterProvider>
+        <Outlet />
+      </MonsterProvider>
     </QueryClientProvider>
   );
 }
