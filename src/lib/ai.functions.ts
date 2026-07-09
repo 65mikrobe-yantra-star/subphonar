@@ -76,7 +76,7 @@ export const chat = createServerFn({ method: "POST" })
         body: JSON.stringify({
           model: data.model,
           messages,
-          max_tokens: 4000,
+          max_tokens: 8000,
         }),
       });
 

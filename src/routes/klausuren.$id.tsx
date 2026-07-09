@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppNav } from "@/components/AppNav";
-import { AiPanel, getChatSummary } from "@/components/AiPanel";
+import { AiPanel, getChatSummary, type AiTool } from "@/components/AiPanel";
 import { FileUploadZone } from "@/components/FileUploadZone";
 import { FlashcardView } from "@/components/FlashcardView";
 import { MindmapCanvas } from "@/components/MindmapCanvas";
@@ -83,7 +83,11 @@ function KlausurDetail() {
   const themaFlashcards = klausur.themaFlashcards ?? {};
 
   function sync(updated: Klausur) {
-    setKlausuren(klausuren.map((k) => (k.id === updated.id ? updated : k)));
+    setKlausuren((prev) => prev.map((k) => (k.id === updated.id ? updated : k)));
+  }
+  /** Funktionale Mutation der aktuellen Klausur — safe für sequentielle KI-Tool-Aufrufe. */
+  function mutate(fn: (k: Klausur) => Klausur) {
+    setKlausuren((prev) => prev.map((k) => (String(k.id) === id ? fn(k) : k)));
   }
   function updateThemaField<K extends keyof Thema>(tid: number, field: K, value: Thema[K]) {
     if (!klausur) return;
@@ -543,56 +547,286 @@ Sei präzise und prüfungsrelevant.`;
         <ErklaerbaerTab klausur={klausur} systemPrompt={systemPrompt} contextFiles={files} update={sync} />
         </div>
 
-        {/* FEHLER-JOURNAL */}
+        {/* FEHLER-JOURNAL — spielerisch & motivierend */}
         <div id="sec-fehler" style={{ scrollMarginTop: 70, marginBottom: 28 }}>
-          <SectionTitle icon="🧠" label="Fehler-Journal — was war wichtig, wo lagen Fehler?" color={"#F09595"} />
-          <div style={{ background: C.surface, border: `1px solid ${C.border}`, borderRadius: 12, padding: 18 }}>
-            <div style={{ fontSize: 12, color: C.textMuted, marginBottom: 10 }}>
-              Halte fest, was du oft falsch machst, was du dir merken willst, oder Erkenntnisse aus Probeklausuren. Die KI nutzt das in jeder Antwort.
-            </div>
-            <textarea
-              style={{ ...s.ta, minHeight: 70 }}
-              placeholder="z.B. Bei Bilanz immer Aktiv = Passiv prüfen. Kommafehler in Englisch-Aufsätzen…"
-              value={fehlerInput}
-              onChange={(e) => setFehlerInput(e.target.value)}
-            />
-            <button
-              style={{ ...s.btnP, width: "auto", padding: "8px 22px", marginTop: 4 }}
-              onClick={() => {
-                const txt = fehlerInput.trim();
-                if (!txt) return;
-                const entry = { id: Date.now(), date: new Date().toISOString(), text: txt };
-                sync({ ...klausur, fehler: [entry, ...(klausur.fehler ?? [])] });
-                setFehlerInput("");
-              }}
-            >
-              + Festhalten
-            </button>
-            <div style={{ marginTop: 16, display: "grid", gap: 8 }}>
-              {(klausur.fehler ?? []).length === 0 && (
-                <div style={{ fontSize: 12, color: C.textDim, fontStyle: "italic" }}>Noch keine Einträge.</div>
-              )}
-              {(klausur.fehler ?? []).map((f) => (
-                <div key={f.id} style={{ background: C.surfaceHigh, border: `1px solid ${C.border}`, borderRadius: 8, padding: "10px 12px", display: "flex", gap: 10, alignItems: "flex-start" }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 10, color: C.textDim, marginBottom: 4 }}>{formatDate(f.date)}</div>
-                    <div style={{ fontSize: 13, color: C.text, whiteSpace: "pre-wrap", lineHeight: 1.5 }}>{f.text}</div>
-                  </div>
-                  <button
-                    style={{ ...s.smallBtn(C.red), padding: "3px 8px", fontSize: 10 }}
-                    onClick={() => sync({ ...klausur, fehler: (klausur.fehler ?? []).filter((x) => x.id !== f.id) })}
+          <SectionTitle icon="🧠" label="Aha-Momente & Stolperfallen" color={"#F09595"} />
+          {(() => {
+            const fehlerList = klausur.fehler ?? [];
+            const emojis = ["💡", "🎯", "⚡", "🔍", "🧩", "🚀", "🌟", "🦉", "🧠", "🎓"];
+            const cardTints = [
+              { bg: "linear-gradient(135deg,#FFE7B8 0%,#FFD68A 100%)", ink: "#7A4B00", accent: "#E88E00" },
+              { bg: "linear-gradient(135deg,#D7F0FF 0%,#A6DAFF 100%)", ink: "#0B4A73", accent: "#0F80C2" },
+              { bg: "linear-gradient(135deg,#FFD9E6 0%,#FFB1CD 100%)", ink: "#7A0E3E", accent: "#D93B7A" },
+              { bg: "linear-gradient(135deg,#D8F5D6 0%,#A6E7A2 100%)", ink: "#0F4D18", accent: "#2AA13B" },
+              { bg: "linear-gradient(135deg,#E5DDFF 0%,#C4B4FF 100%)", ink: "#2E1A7A", accent: "#5A3EEA" },
+            ];
+            const cheers = [
+              "Aufgeschrieben ist halb gemerkt! 💪",
+              "Ein Fehler weniger fürs nächste Mal ✨",
+              "Diese Falle kennt Subby jetzt für dich 🐉",
+              "Klein festgehalten, groß gelernt 🌱",
+              "Boom — im Kopf abgespeichert 🎯",
+            ];
+            return (
+              <div
+                style={{
+                  background: "linear-gradient(160deg, rgba(249,196,132,0.08) 0%, rgba(240,149,149,0.06) 100%)",
+                  border: `1px solid rgba(240,149,149,0.25)`,
+                  borderRadius: 20,
+                  padding: 20,
+                }}
+              >
+                {/* Header-Zeile mit Zähler */}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14, flexWrap: "wrap" }}>
+                  <div
+                    style={{
+                      background: "linear-gradient(135deg,#F9C484,#F09595)",
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      padding: "5px 12px",
+                      borderRadius: 99,
+                      display: "inline-flex",
+                      gap: 6,
+                      alignItems: "center",
+                      boxShadow: "0 4px 12px -4px rgba(240,149,149,0.5)",
+                    }}
                   >
-                    ✕
-                  </button>
+                    🎒 {fehlerList.length} {fehlerList.length === 1 ? "Aha-Moment" : "Aha-Momente"}
+                  </div>
+                  <div style={{ fontSize: 12, color: C.textMuted, flex: 1 }}>
+                    Was hat dich reingelegt? Was willst du merken? Subby liest mit und hilft im nächsten Chat.
+                  </div>
                 </div>
-              ))}
-            </div>
-          </div>
+
+                {/* Input-Karte */}
+                <div
+                  style={{
+                    background: "rgba(255,255,255,0.03)",
+                    border: `1px dashed rgba(240,149,149,0.35)`,
+                    borderRadius: 14,
+                    padding: 14,
+                    marginBottom: 18,
+                  }}
+                >
+                  <textarea
+                    style={{ ...s.ta, minHeight: 62, marginBottom: 8, fontSize: 13 }}
+                    placeholder={'💭 z.B. „Beim Ableiten von x·sin(x) an die Produktregel denken!" oder „Comma-Splice in Englisch-Aufsatz"'}
+                    value={fehlerInput}
+                    onChange={(e) => setFehlerInput(e.target.value)}
+                  />
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                    <button
+                      style={{
+                        background: "linear-gradient(135deg,#F9C484,#F09595)",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 10,
+                        padding: "9px 20px",
+                        fontSize: 13,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        boxShadow: "0 4px 14px -4px rgba(240,149,149,0.6)",
+                      }}
+                      onClick={() => {
+                        const txt = fehlerInput.trim();
+                        if (!txt) return;
+                        const entry = { id: Date.now(), date: new Date().toISOString(), text: txt };
+                        mutate((k) => ({ ...k, fehler: [entry, ...(k.fehler ?? [])] }));
+                        setFehlerInput("");
+                      }}
+                    >
+                      ✨ Merken!
+                    </button>
+                    <div style={{ fontSize: 11, color: C.textDim }}>
+                      💡 Tipp: Frag Subby einfach im Chat „trag ins Fehlerprotokoll ein: …"
+                    </div>
+                  </div>
+                </div>
+
+                {/* Empty State — freundlich */}
+                {fehlerList.length === 0 && (
+                  <div
+                    style={{
+                      textAlign: "center",
+                      padding: "24px 16px",
+                      background: "rgba(255,255,255,0.02)",
+                      borderRadius: 14,
+                      border: `1px solid rgba(255,255,255,0.05)`,
+                    }}
+                  >
+                    <div style={{ fontSize: 40, marginBottom: 8 }}>🌱</div>
+                    <div style={{ fontSize: 14, color: C.text, fontWeight: 600, marginBottom: 4 }}>
+                      Noch leer — und das ist ok!
+                    </div>
+                    <div style={{ fontSize: 12, color: C.textMuted }}>
+                      Sobald du beim Üben stolperst, hier festhalten. Jeder Eintrag = ein Bonus im nächsten Test.
+                    </div>
+                  </div>
+                )}
+
+                {/* Karten-Grid */}
+                {fehlerList.length > 0 && (
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12 }}>
+                    {fehlerList.map((f, i) => {
+                      const tint = cardTints[i % cardTints.length];
+                      const emoji = emojis[i % emojis.length];
+                      const cheer = cheers[i % cheers.length];
+                      return (
+                        <div
+                          key={f.id}
+                          style={{
+                            background: tint.bg,
+                            borderRadius: 18,
+                            padding: 16,
+                            position: "relative",
+                            boxShadow: "0 6px 18px -8px rgba(0,0,0,0.35)",
+                            transform: `rotate(${(i % 3) - 1}deg)`,
+                            transition: "transform 200ms ease",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.transform = "rotate(0deg) translateY(-2px)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.transform = `rotate(${(i % 3) - 1}deg)`)}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                            <div
+                              style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: 12,
+                                background: "rgba(255,255,255,0.6)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontSize: 18,
+                                boxShadow: "inset 0 -2px 4px rgba(0,0,0,0.08)",
+                              }}
+                            >
+                              {emoji}
+                            </div>
+                            <div style={{ fontSize: 10, color: tint.ink, opacity: 0.7, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>
+                              {formatDate(f.date)}
+                            </div>
+                            <button
+                              style={{
+                                marginLeft: "auto",
+                                background: "rgba(255,255,255,0.5)",
+                                border: "none",
+                                color: tint.ink,
+                                borderRadius: 8,
+                                width: 24,
+                                height: 24,
+                                fontSize: 12,
+                                cursor: "pointer",
+                                opacity: 0.6,
+                              }}
+                              onClick={() => mutate((k) => ({ ...k, fehler: (k.fehler ?? []).filter((x) => x.id !== f.id) }))}
+                              title="Löschen"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                          <div style={{ fontSize: 13.5, color: tint.ink, whiteSpace: "pre-wrap", lineHeight: 1.5, fontWeight: 500, marginBottom: 10 }}>
+                            {f.text}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 10.5,
+                              color: tint.accent,
+                              fontWeight: 700,
+                              background: "rgba(255,255,255,0.55)",
+                              padding: "4px 10px",
+                              borderRadius: 99,
+                              display: "inline-block",
+                            }}
+                          >
+                            {cheer}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </div>
 
 
-        {/* AI Panel */}
-        <AiPanel show={aiOpen} onClose={() => setAiOpen(false)} systemPrompt={systemPrompt} files={files} extraContext={`Klausur: ${klausur.title}`} storageKey={`sub.chat.klausur.${klausur.id}`} />
+        {/* AI Panel mit Tool-Layer — die KI kann Themen & Fehler direkt anlegen/löschen */}
+        {(() => {
+          const aiTools: AiTool[] = [
+            {
+              name: "add_thema",
+              description: `Legt ein neues (Unter-)Thema an. Payload: {"name":"...", "prioritaet":"hoch|mittel|niedrig", "zeit":"z.B. 2h", "keypoints":"- ...\\n- ...", "offeneFragen":"- ...", "verwechslungen":"- ...", "typ":"theorie|rechnung|freitext|mc|vokabeln|anwendung"}`,
+              run: (p) => {
+                const d = p as Partial<Thema> & { name: string };
+                const neu: Thema = {
+                  id: Date.now() + Math.floor(Math.random() * 1000),
+                  name: d.name,
+                  prioritaet: (d.prioritaet as Prioritaet) ?? "mittel",
+                  zeit: d.zeit ?? "",
+                  keypoints: d.keypoints ?? "",
+                  mindmap: d.mindmap ?? "",
+                  offeneFragen: d.offeneFragen ?? "",
+                  verwechslungen: d.verwechslungen,
+                  typ: d.typ as AufgabenTyp | undefined,
+                  relevanz: d.relevanz,
+                  lernstatus: "offen",
+                };
+                mutate((k) => ({ ...k, themen: [...k.themen, neu] }));
+                return `Thema angelegt: „${neu.name}"`;
+              },
+            },
+            {
+              name: "delete_thema",
+              description: `Löscht ein Thema per Name. Payload: {"name":"exakter Themenname"}`,
+              run: (p) => {
+                const d = p as { name: string };
+                mutate((k) => ({ ...k, themen: k.themen.filter((t) => t.name !== d.name) }));
+                return `Thema gelöscht: „${d.name}"`;
+              },
+            },
+            {
+              name: "add_fehler",
+              description: `Trägt einen Eintrag ins Fehler-Journal ein. Payload: {"text":"kurze Beschreibung was schief lief / was zu merken ist"}`,
+              run: (p) => {
+                const d = p as { text: string };
+                const entry = { id: Date.now() + Math.floor(Math.random() * 1000), date: new Date().toISOString(), text: d.text };
+                mutate((k) => ({ ...k, fehler: [entry, ...(k.fehler ?? [])] }));
+                return `Ins Fehler-Journal eingetragen 🧠`;
+              },
+            },
+            {
+              name: "delete_fehler",
+              description: `Löscht einen Fehler-Eintrag per Textmatch. Payload: {"contains":"Teilstring des Eintrags"}`,
+              run: (p) => {
+                const d = p as { contains: string };
+                mutate((k) => ({ ...k, fehler: (k.fehler ?? []).filter((f) => !f.text.includes(d.contains)) }));
+                return `Fehler-Einträge mit „${d.contains}" gelöscht`;
+              },
+            },
+            {
+              name: "update_probleme",
+              description: `Setzt/ergänzt das "Wo's hakt"-Feld der Klausur. Payload: {"text":"...", "mode":"append|replace"}`,
+              run: (p) => {
+                const d = p as { text: string; mode?: "append" | "replace" };
+                mutate((k) => ({ ...k, probleme: d.mode === "replace" ? d.text : `${k.probleme ? k.probleme + "\n" : ""}${d.text}` }));
+                return `Probleme aktualisiert`;
+              },
+            },
+          ];
+          return (
+            <AiPanel
+              show={aiOpen}
+              onClose={() => setAiOpen(false)}
+              systemPrompt={systemPrompt}
+              files={files}
+              extraContext={`Klausur: ${klausur.title} · Tools aktiv`}
+              storageKey={`sub.chat.klausur.${klausur.id}`}
+              tools={aiTools}
+            />
+          );
+        })()}
 
 
         {/* Add Thema Modal */}
