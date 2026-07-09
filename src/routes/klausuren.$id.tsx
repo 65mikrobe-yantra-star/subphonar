@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { AppNav } from "@/components/AppNav";
-import { AiPanel, getChatSummary } from "@/components/AiPanel";
+import { AiPanel, getChatSummary, type AiTool } from "@/components/AiPanel";
 import { FileUploadZone } from "@/components/FileUploadZone";
 import { FlashcardView } from "@/components/FlashcardView";
 import { MindmapCanvas } from "@/components/MindmapCanvas";
