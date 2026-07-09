@@ -83,7 +83,11 @@ function KlausurDetail() {
   const themaFlashcards = klausur.themaFlashcards ?? {};
 
   function sync(updated: Klausur) {
-    setKlausuren(klausuren.map((k) => (k.id === updated.id ? updated : k)));
+    setKlausuren((prev) => prev.map((k) => (k.id === updated.id ? updated : k)));
+  }
+  /** Funktionale Mutation der aktuellen Klausur — safe für sequentielle KI-Tool-Aufrufe. */
+  function mutate(fn: (k: Klausur) => Klausur) {
+    setKlausuren((prev) => prev.map((k) => (String(k.id) === id ? fn(k) : k)));
   }
   function updateThemaField<K extends keyof Thema>(tid: number, field: K, value: Thema[K]) {
     if (!klausur) return;
