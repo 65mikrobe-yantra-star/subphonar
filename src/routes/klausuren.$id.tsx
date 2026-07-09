@@ -611,7 +611,7 @@ Sei präzise und prüfungsrelevant.`;
                 >
                   <textarea
                     style={{ ...s.ta, minHeight: 62, marginBottom: 8, fontSize: 13 }}
-                    placeholder="💭 z.B. „Beim Ableiten von x·sin(x) an die Produktregel denken!" oder „Comma-Splice in Englisch-Aufsatz""
+                    placeholder={'💭 z.B. „Beim Ableiten von x·sin(x) an die Produktregel denken!" oder „Comma-Splice in Englisch-Aufsatz"'}
                     value={fehlerInput}
                     onChange={(e) => setFehlerInput(e.target.value)}
                   />
