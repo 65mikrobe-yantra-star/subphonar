@@ -595,8 +595,81 @@ Sei präzise und prüfungsrelevant.`;
         </div>
 
 
-        {/* AI Panel */}
-        <AiPanel show={aiOpen} onClose={() => setAiOpen(false)} systemPrompt={systemPrompt} files={files} extraContext={`Klausur: ${klausur.title}`} storageKey={`sub.chat.klausur.${klausur.id}`} />
+        {/* AI Panel mit Tool-Layer — die KI kann Themen & Fehler direkt anlegen/löschen */}
+        {(() => {
+          const aiTools: AiTool[] = [
+            {
+              name: "add_thema",
+              description: `Legt ein neues (Unter-)Thema an. Payload: {"name":"...", "prioritaet":"hoch|mittel|niedrig", "zeit":"z.B. 2h", "keypoints":"- ...\\n- ...", "offeneFragen":"- ...", "verwechslungen":"- ...", "typ":"theorie|rechnung|freitext|mc|vokabeln|anwendung"}`,
+              run: (p) => {
+                const d = p as Partial<Thema> & { name: string };
+                const neu: Thema = {
+                  id: Date.now() + Math.floor(Math.random() * 1000),
+                  name: d.name,
+                  prioritaet: (d.prioritaet as Prioritaet) ?? "mittel",
+                  zeit: d.zeit ?? "",
+                  keypoints: d.keypoints ?? "",
+                  mindmap: d.mindmap ?? "",
+                  offeneFragen: d.offeneFragen ?? "",
+                  verwechslungen: d.verwechslungen,
+                  typ: d.typ as AufgabenTyp | undefined,
+                  relevanz: d.relevanz,
+                  lernstatus: "offen",
+                };
+                mutate((k) => ({ ...k, themen: [...k.themen, neu] }));
+                return `Thema angelegt: „${neu.name}"`;
+              },
+            },
+            {
+              name: "delete_thema",
+              description: `Löscht ein Thema per Name. Payload: {"name":"exakter Themenname"}`,
+              run: (p) => {
+                const d = p as { name: string };
+                mutate((k) => ({ ...k, themen: k.themen.filter((t) => t.name !== d.name) }));
+                return `Thema gelöscht: „${d.name}"`;
+              },
+            },
+            {
+              name: "add_fehler",
+              description: `Trägt einen Eintrag ins Fehler-Journal ein. Payload: {"text":"kurze Beschreibung was schief lief / was zu merken ist"}`,
+              run: (p) => {
+                const d = p as { text: string };
+                const entry = { id: Date.now() + Math.floor(Math.random() * 1000), date: new Date().toISOString(), text: d.text };
+                mutate((k) => ({ ...k, fehler: [entry, ...(k.fehler ?? [])] }));
+                return `Ins Fehler-Journal eingetragen 🧠`;
+              },
+            },
+            {
+              name: "delete_fehler",
+              description: `Löscht einen Fehler-Eintrag per Textmatch. Payload: {"contains":"Teilstring des Eintrags"}`,
+              run: (p) => {
+                const d = p as { contains: string };
+                mutate((k) => ({ ...k, fehler: (k.fehler ?? []).filter((f) => !f.text.includes(d.contains)) }));
+                return `Fehler-Einträge mit „${d.contains}" gelöscht`;
+              },
+            },
+            {
+              name: "update_probleme",
+              description: `Setzt/ergänzt das "Wo's hakt"-Feld der Klausur. Payload: {"text":"...", "mode":"append|replace"}`,
+              run: (p) => {
+                const d = p as { text: string; mode?: "append" | "replace" };
+                mutate((k) => ({ ...k, probleme: d.mode === "replace" ? d.text : `${k.probleme ? k.probleme + "\n" : ""}${d.text}` }));
+                return `Probleme aktualisiert`;
+              },
+            },
+          ];
+          return (
+            <AiPanel
+              show={aiOpen}
+              onClose={() => setAiOpen(false)}
+              systemPrompt={systemPrompt}
+              files={files}
+              extraContext={`Klausur: ${klausur.title} · Tools aktiv`}
+              storageKey={`sub.chat.klausur.${klausur.id}`}
+              tools={aiTools}
+            />
+          );
+        })()}
 
 
         {/* Add Thema Modal */}
