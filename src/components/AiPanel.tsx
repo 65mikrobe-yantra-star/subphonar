@@ -57,12 +57,28 @@ export function getChatSummary(key: string, max = 110): string | null {
   }
 }
 
-export function AiPanel({ show, onClose, systemPrompt, files, extraContext, actionLabel, onAction, storageKey }: Props) {
+export function AiPanel({ show, onClose, systemPrompt, files, extraContext, actionLabel, onAction, storageKey, tools }: Props) {
   const chatFn = useServerFn(chat);
   const [messages, setMessages] = useState<ChatMessage[]>(() => loadHistory(storageKey));
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
+
+  const toolsPrompt = tools && tools.length
+    ? `\n\n=== TOOLS (WICHTIG) ===
+Du KANNST App-Daten direkt ändern, indem du am Ende deiner Antwort einen oder mehrere Tool-Aufrufe in DIESEM exakten Format anhängst (nichts danach, keine Backticks):
+
+<<TOOL:tool_name>>{"key":"value"}<<END>>
+
+Verfügbare Tools:
+${tools.map((t) => `• ${t.name} — ${t.description}`).join("\n")}
+
+Regeln:
+- Wenn der Nutzer sagt "füge hinzu", "gliedere in Unterthemen", "trag ins Fehlerprotokoll ein", "lösche X" — RUFE DAS PASSENDE TOOL AUF.
+- Erst kurze Bestätigung/Antwort in Prosa (max 2 Sätze), DANN die Tool-Blöcke.
+- Ein Block pro Aktion. Bei Batch (z.B. 5 Unterthemen) → 5 separate Blöcke.
+- JSON muss valide sein, ohne Kommentare, ohne trailing commas.`
+    : "";
 
   useEffect(() => {
     if (show) setMessages(loadHistory(storageKey));
@@ -77,6 +93,30 @@ export function AiPanel({ show, onClose, systemPrompt, files, extraContext, acti
     }
   }, [messages, storageKey]);
 
+  function parseAndRunTools(raw: string): { cleanText: string; report: string[] } {
+    if (!tools || !tools.length) return { cleanText: raw, report: [] };
+    const re = /<<TOOL:([a-zA-Z_][a-zA-Z0-9_]*)>>([\s\S]*?)<<END>>/g;
+    const report: string[] = [];
+    const cleanText = raw
+      .replace(re, (_m, name: string, body: string) => {
+        const tool = tools.find((t) => t.name === name);
+        if (!tool) {
+          report.push(`⚠ Unbekanntes Tool: ${name}`);
+          return "";
+        }
+        try {
+          const payload = JSON.parse(body.trim());
+          const msg = tool.run(payload);
+          report.push(`✓ ${msg}`);
+        } catch (e) {
+          report.push(`⚠ ${name}: JSON-Fehler (${e instanceof Error ? e.message : "parse"})`);
+        }
+        return "";
+      })
+      .trim();
+    return { cleanText, report };
+  }
+
   async function send() {
     if (!input.trim() || loading) return;
     const txt = input.trim();
@@ -85,11 +125,18 @@ export function AiPanel({ show, onClose, systemPrompt, files, extraContext, acti
     setMessages(hist);
     setLoading(true);
     try {
-      const res = await chatFn({ data: { systemPrompt, messages: hist, files: files ?? [], model: "google/gemini-2.5-flash" } });
+      const res = await chatFn({ data: { systemPrompt: systemPrompt + toolsPrompt, messages: hist, files: files ?? [], model: "google/gemini-2.5-flash" } });
       const raw = res.error ? `⚠️ ${res.error}` : res.text || "(Keine Antwort)";
-      const reply = res.error ? raw : cleanMarkdown(raw);
-      setMessages([...hist, { role: "assistant", content: reply }]);
-      if (onAction && !res.error) onAction(reply);
+      let display: string;
+      if (res.error) {
+        display = raw;
+      } else {
+        const { cleanText, report } = parseAndRunTools(raw);
+        const cleaned = cleanMarkdown(cleanText) || "Erledigt.";
+        display = report.length ? `${cleaned}\n\n${report.join("\n")}` : cleaned;
+      }
+      setMessages([...hist, { role: "assistant", content: display }]);
+      if (onAction && !res.error) onAction(display);
     } catch {
       setMessages([...hist, { role: "assistant", content: "⚠️ Verbindungsfehler." }]);
     }
