@@ -95,7 +95,8 @@ Beispielsätze schultauglich und alltagsnah.`;
   }
 
   useEffect(() => {
-    if (!brief || brief.date !== todayKey()) {
+    // Neu laden wenn: kein Brief, Datum alt, oder altes 5er-Format (v7 hat 7 Vokabeln)
+    if (!brief || brief.date !== todayKey() || brief.vocab.length !== 7) {
       void generate();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
