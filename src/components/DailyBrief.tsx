@@ -6,8 +6,9 @@ import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
 import { chat } from "@/lib/ai.functions";
 
-type Vocab = { word: string; ipa?: string; translation: string; example: string };
+type Vocab = { word: string; ipa?: string; translation: string; example: string; repeat?: boolean };
 type Brief = { date: string; vocab: Vocab[]; finance: { topic: string; explanation: string } };
+type VocabHistory = { word: string; ipa?: string; translation: string; example: string }[];
 type VocabProgress = { date: string; learned: number[] };
 
 function todayKey() {
@@ -17,6 +18,7 @@ function todayKey() {
 export function DailyBrief() {
   const [brief, setBrief] = useLocalStorage<Brief | null>("sub.daily.brief", null);
   const [history, setHistory] = useLocalStorage<string[]>("sub.daily.finance.history", []);
+  const [vocabHistory, setVocabHistory] = useLocalStorage<VocabHistory>("sub.daily.vocab.history", []);
   const [progress, setProgress] = useLocalStorage<VocabProgress>("sub.vocab.learned", { date: "", learned: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -35,24 +37,25 @@ export function DailyBrief() {
     setError(null);
     try {
       const excluded = history.slice(-14).join(", ");
+      const recentWords = vocabHistory.slice(-40).map((v) => v.word).join(", ");
       const prompt = `Erstelle Johannas tägliches Lern-Briefing für ${todayKey()}.
-Liefere AUSSCHLIESSLICH valides JSON in folgendem Schema (kein Markdown, kein Fließtext drumherum):
+Liefere AUSSCHLIESSLICH valides JSON (kein Markdown):
 {
   "vocab": [
-    {"word":"…","ipa":"…","translation":"…","example":"…"},
-    … insgesamt 5 nützliche Englisch-Vokabeln auf solidem B1/B2-Schul-Niveau, die Johanna in Klausuren / Aufsätzen / mündlichen Prüfungen tatsächlich verwenden kann (Verben, Adjektive, Übergangswörter, gängige Kollokationen — KEINE seltenen Spezialbegriffe).
+    {"word":"…","ipa":"…","translation":"…","example":"…"}
+    … genau 5 NEUE, hochwertige Englisch-Vokabeln auf gehobenem B2/C1-Schul-Niveau, die in Klausuren / Essays / mündlichen Prüfungen echten Eindruck machen (starke Verben, präzise Adjektive, elegante Übergangswörter, gängige akademische Kollokationen). KEINE Basiswörter, KEINE seltenen Spezialbegriffe. Jede besser als typische Schulbuch-Wahl.
   ],
   "finance": {
-    "topic":"… (nur der Name der Kennzahl / des Konzepts)",
-    "explanation":"klare, kompakte Erklärung in 3-5 Sätzen auf Deutsch, mit Mini-Beispiel + Formel falls passend."
+    "topic":"…",
+    "explanation":"klare Erklärung in 3-5 Sätzen auf Deutsch, mit Mini-Beispiel + Formel falls passend."
   }
 }
 
-Wähle als Finanz-Thema eine wichtige Kennzahl oder ein Business-Konzept, das in den letzten 14 Tagen NOCH NICHT dran war. Bereits verwendet (NICHT wiederholen): ${excluded || "noch keine"}.
+WICHTIG: Verwende NICHT diese kürzlich gezeigten Wörter: ${recentWords || "noch keine"}.
+Finanz-Thema NICHT wiederholen: ${excluded || "noch keine"}.
+Mögliche Finanz-Themen (Beispiele): EBIT, EBITDA-Marge, Umsatzrendite, Eigenkapitalquote, Cash Conversion Cycle, DuPont-Analyse, Break-Even, WACC, ROE, ROA, Free Cashflow, Verschuldungsgrad, Quick Ratio, Bruttomarge, Opportunity Cost, Economies of Scale, Marginalkosten, Goodwill, Leverage-Effekt, Spin-off, Joint Venture.
 
-Mögliche Themen (nur Beispiele, nicht alles auf einmal): EBIT, EBITDA-Marge, Umsatzrendite, Eigenkapitalquote, Anlagendeckungsgrad I+II, Cash Conversion Cycle, DuPont-Analyse, Break-Even-Point, Marktanteil, WACC, Asset Turnover, ROE, ROA, Gesamtkapitalrentabilität, Operating Cashflow, Free Cashflow, Verschuldungsgrad, Zinsdeckungsgrad, Aktueller Liquiditätsgrad, Quick Ratio, Bruttomarge, Nettomarge, Kapitalkosten, Opportunity Cost, Economies of Scale, Marginalkosten, Lernkurve, Goodwill, Amortisation, Leverage-Effekt, Share Buyback, Spin-off, Joint Venture.
-
-Beispielsätze sollen schultauglich und alltagsnah sein.`;
+Beispielsätze schultauglich und alltagsnah.`;
       const res = await chatFn({
         data: {
           systemPrompt: PERSONA_PREFIX,
@@ -67,8 +70,23 @@ Beispielsätze sollen schultauglich und alltagsnah sein.`;
       }
       const clean = res.text.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(clean) as Omit<Brief, "date">;
-      setBrief({ date: todayKey(), ...parsed });
+      // 5 neue + 2 Wiederholungen aus dem letzten Pool
+      const pool = vocabHistory.filter((v) => !parsed.vocab.some((n) => n.word.toLowerCase() === v.word.toLowerCase()));
+      const shuffled = [...pool].sort(() => Math.random() - 0.5);
+      const repeats: Vocab[] = shuffled.slice(0, 2).map((v) => ({ ...v, repeat: true }));
+      const combined = [...parsed.vocab.map((v) => ({ ...v, repeat: false })), ...repeats];
+      setBrief({ date: todayKey(), vocab: combined, finance: parsed.finance });
       setHistory((prev) => [...prev.slice(-13), parsed.finance.topic]);
+      // Neue Vokabeln in History mergen (max 60 behalten)
+      setVocabHistory((prev) => {
+        const merged = [...prev];
+        for (const v of parsed.vocab) {
+          if (!merged.some((m) => m.word.toLowerCase() === v.word.toLowerCase())) {
+            merged.push({ word: v.word, ipa: v.ipa, translation: v.translation, example: v.example });
+          }
+        }
+        return merged.slice(-60);
+      });
     } catch (e) {
       setError(e instanceof Error ? e.message : "Konnte Briefing nicht laden.");
     } finally {
@@ -77,7 +95,8 @@ Beispielsätze sollen schultauglich und alltagsnah sein.`;
   }
 
   useEffect(() => {
-    if (!brief || brief.date !== todayKey()) {
+    // Neu laden wenn: kein Brief, Datum alt, oder altes 5er-Format (v7 hat 7 Vokabeln)
+    if (!brief || brief.date !== todayKey() || brief.vocab.length !== 7) {
       void generate();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,7 +128,7 @@ Beispielsätze sollen schultauglich und alltagsnah sein.`;
         <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 14 }}>
           <div>
             <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
-              🇬🇧 5 English Words of the Day
+              🇬🇧 7 English Words · 5 neu + 2 Wiederholung
             </div>
             <div style={{ display: "grid", gap: 6 }}>
               {brief.vocab.map((v, i) => {
@@ -141,6 +160,9 @@ Beispielsätze sollen schultauglich und alltagsnah sein.`;
                         <span style={{ fontSize: 13, fontWeight: 700, color: done ? C.teal : C.purpleLight, textDecoration: done ? "line-through" : "none" }}>{v.word}</span>
                         {v.ipa && <span style={{ fontSize: 10, color: C.textDim }}>/{v.ipa}/</span>}
                         <span style={{ fontSize: 12, color: C.text }}>— {v.translation}</span>
+                        {v.repeat && (
+                          <span style={{ fontSize: 9, color: C.amber, background: C.amberDim, border: `1px solid ${C.amber}55`, padding: "1px 6px", borderRadius: 99, fontWeight: 700, letterSpacing: "0.05em" }}>WDH</span>
+                        )}
                       </div>
                       <div style={{ fontSize: 11, color: C.textMuted, fontStyle: "italic", marginTop: 3 }}>„{v.example}"</div>
                     </div>

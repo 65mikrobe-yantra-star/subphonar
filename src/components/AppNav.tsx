@@ -4,7 +4,7 @@ import { APP_NAME } from "@/lib/constants";
 import { C } from "@/lib/constants";
 import type { CSSProperties } from "react";
 import { MonsterHead } from "./MonsterHead";
-import { ThemeToggle } from "./ThemeToggle";
+
 
 const TABS = [
   { to: "/", label: "Dashboard", Icon: LayoutDashboard },
@@ -72,7 +72,6 @@ export function AppNav() {
         );
       })}
       <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
-        <ThemeToggle />
         <MonsterHead />
       </div>
     </nav>

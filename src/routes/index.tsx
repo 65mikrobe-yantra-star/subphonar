@@ -151,7 +151,7 @@ Erstelle 5-8 konkrete, kleine Lern-Aufgaben. Antworte NUR als JSON: {"todos":[{"
       <AppNav />
 
       <div style={s.main(aiOpen)}>
-        <DailyHeader vocabTotal={5} />
+        <DailyHeader vocabTotal={7} />
         {/* Hero mit Subby (großes Monster) */}
         <div
           style={{
