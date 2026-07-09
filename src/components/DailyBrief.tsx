@@ -127,7 +127,7 @@ Beispielsätze schultauglich und alltagsnah.`;
         <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 14 }}>
           <div>
             <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>
-              🇬🇧 5 English Words of the Day
+              🇬🇧 7 English Words · 5 neu + 2 Wiederholung
             </div>
             <div style={{ display: "grid", gap: 6 }}>
               {brief.vocab.map((v, i) => {
@@ -159,6 +159,9 @@ Beispielsätze schultauglich und alltagsnah.`;
                         <span style={{ fontSize: 13, fontWeight: 700, color: done ? C.teal : C.purpleLight, textDecoration: done ? "line-through" : "none" }}>{v.word}</span>
                         {v.ipa && <span style={{ fontSize: 10, color: C.textDim }}>/{v.ipa}/</span>}
                         <span style={{ fontSize: 12, color: C.text }}>— {v.translation}</span>
+                        {v.repeat && (
+                          <span style={{ fontSize: 9, color: C.amber, background: C.amberDim, border: `1px solid ${C.amber}55`, padding: "1px 6px", borderRadius: 99, fontWeight: 700, letterSpacing: "0.05em" }}>WDH</span>
+                        )}
                       </div>
                       <div style={{ fontSize: 11, color: C.textMuted, fontStyle: "italic", marginTop: 3 }}>„{v.example}"</div>
                     </div>
