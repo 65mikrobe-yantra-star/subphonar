@@ -6,6 +6,13 @@ import { chat } from "@/lib/ai.functions";
 import { cleanMarkdown } from "@/lib/helpers";
 import type { ChatMessage, FileBlock } from "@/lib/types";
 
+export type AiTool = {
+  name: string;
+  description: string;
+  /** Führt die Aktion aus, gibt eine kurze menschenlesbare Bestätigung zurück. */
+  run: (payload: unknown) => string;
+};
+
 type Props = {
   show: boolean;
   onClose: () => void;
@@ -16,6 +23,8 @@ type Props = {
   onAction?: (reply: string) => void;
   /** Persistiert die Chat-Historie im localStorage (pro Kontext eigener Key). */
   storageKey?: string;
+  /** Tools, die die KI aufrufen kann, um App-Daten zu ändern. */
+  tools?: AiTool[];
 };
 
 function loadHistory(key?: string): ChatMessage[] {
