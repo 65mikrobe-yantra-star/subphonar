@@ -6,8 +6,8 @@ export const s = {
   app: {
     minHeight: "100vh",
     background: C.bg,
-    color: C.text,
-    fontFamily: "'Inter', sans-serif",
+    color: C.textOnDark,
+    fontFamily: "'Nunito', ui-sans-serif, system-ui, sans-serif",
   } as CSSProperties,
   nav: {
     display: "flex",
