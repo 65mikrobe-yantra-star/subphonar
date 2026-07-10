@@ -886,15 +886,14 @@ function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill,
   return (
     <div
       style={{
-        background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))",
-        backdropFilter: "blur(10px)",
-        border: `1px solid rgba(255,255,255,0.08)`,
-        borderRadius: 16,
-        padding: 16,
+        background: "linear-gradient(180deg, #FFFFFF 0%, #F3F8FD 100%)",
+        border: `1px solid ${C.border}`,
+        borderRadius: 20,
+        padding: 18,
         display: "flex",
         flexDirection: "column",
         gap: 12,
-        boxShadow: "0 4px 20px -8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)",
+        boxShadow: "0 10px 30px -18px rgba(10,20,45,0.55), 0 2px 6px -2px rgba(10,20,45,0.12)",
         transition: "transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease",
       }}
     >
