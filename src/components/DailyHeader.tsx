@@ -57,7 +57,7 @@ function Ring({ value, max, color, size = 62, label, sub, Icon }: {
         </div>
       </div>
       <div>
-        <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600 }}>{label}</div>
+        <div style={{ fontSize: 10, color: C.textDimOnDark, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700 }}>{label}</div>
         <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", lineHeight: 1.15 }}>{sub}</div>
       </div>
     </div>
