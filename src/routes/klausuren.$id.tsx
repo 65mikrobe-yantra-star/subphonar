@@ -258,11 +258,11 @@ Sei präzise und prüfungsrelevant.`;
       <div style={s.main(aiOpen)}>
         {/* Header */}
         <div style={{ marginBottom: 18 }}>
-          <Link to="/klausuren" style={{ fontSize: 12, color: C.textMuted, textDecoration: "none" }}>
+          <Link to="/klausuren" style={{ fontSize: 12, color: C.textMutedOnDark, textDecoration: "none" }}>
             ← Klausuren
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8, flexWrap: "wrap" }}>
-            <h1 style={{ fontSize: 26, fontWeight: 700, color: C.text, margin: 0, letterSpacing: "-0.02em" }}>{klausur.title}</h1>
+            <h1 style={{ fontSize: 30, fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.02em", fontFamily: "'Fraunces', serif" }}>{klausur.title}</h1>
             <div style={{ ...s.pill(C.purpleDim, C.purpleLight), fontSize: 12, padding: "4px 12px" }}>{klausur.fach || "—"}</div>
             {klausur.datum && (
               <div style={{ ...s.pill(C.amberDim, C.amber), fontSize: 12, padding: "4px 12px" }}>{formatDate(klausur.datum)}</div>
@@ -281,11 +281,11 @@ Sei präzise und prüfungsrelevant.`;
                   marginTop: 10,
                   width: "100%",
                   textAlign: "left",
-                  background: "rgba(127,119,221,0.08)",
-                  border: `1px solid ${C.purple}33`,
-                  borderRadius: 10,
-                  padding: "8px 12px",
-                  color: C.textMuted,
+                  background: "rgba(124,107,255,0.14)",
+                  border: `1px solid ${C.purple}55`,
+                  borderRadius: 12,
+                  padding: "10px 14px",
+                  color: C.textMutedOnDark,
                   fontSize: 11.5,
                   cursor: "pointer",
                   lineHeight: 1.5,
@@ -295,9 +295,9 @@ Sei präzise und prüfungsrelevant.`;
                 }}
                 title="Chat fortsetzen"
               >
-                <span style={{ color: C.purpleLight, fontWeight: 600, flexShrink: 0 }}>✦ Zuletzt:</span>
+                <span style={{ color: C.purpleLight, fontWeight: 700, flexShrink: 0 }}>✦ Zuletzt:</span>
                 <span style={{ flex: 1 }}>{summary}</span>
-                <span style={{ color: C.textDim, flexShrink: 0 }}>↗</span>
+                <span style={{ color: C.textDimOnDark, flexShrink: 0 }}>↗</span>
               </button>
             );
           })()}
@@ -652,7 +652,7 @@ Sei präzise und prüfungsrelevant.`;
                       padding: "24px 16px",
                       background: "rgba(255,255,255,0.02)",
                       borderRadius: 14,
-                      border: `1px solid rgba(255,255,255,0.05)`,
+                      border: `1px solid rgba(27,37,64,0.06)`,
                     }}
                   >
                     <div style={{ fontSize: 40, marginBottom: 8 }}>🌱</div>
@@ -886,15 +886,14 @@ function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill,
   return (
     <div
       style={{
-        background: "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.015))",
-        backdropFilter: "blur(10px)",
-        border: `1px solid rgba(255,255,255,0.08)`,
-        borderRadius: 16,
-        padding: 16,
+        background: "linear-gradient(180deg, #FFFFFF 0%, #F3F8FD 100%)",
+        border: `1px solid ${C.border}`,
+        borderRadius: 20,
+        padding: 18,
         display: "flex",
         flexDirection: "column",
         gap: 12,
-        boxShadow: "0 4px 20px -8px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.04)",
+        boxShadow: "0 10px 30px -18px rgba(10,20,45,0.55), 0 2px 6px -2px rgba(10,20,45,0.12)",
         transition: "transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease",
       }}
     >
@@ -906,7 +905,7 @@ function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill,
           onChange={(e) => onUpdate("name", e.target.value)}
         />
         <button
-          style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: C.textMuted, cursor: "pointer", fontSize: 11, padding: "4px 10px", borderRadius: 8 }}
+          style={{ background: "rgba(27,37,64,0.06)", border: "1px solid rgba(27,37,64,0.12)", color: C.textMuted, cursor: "pointer", fontSize: 11, padding: "4px 10px", borderRadius: 8 }}
           onClick={onToggle}
           title={expanded ? "Einklappen" : "Details"}
         >
@@ -923,7 +922,7 @@ function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill,
           ● {pc.label}
         </span>
         {t.zeit && (
-          <span style={{ background: "rgba(255,255,255,0.04)", color: C.textMuted, fontSize: 10.5, padding: "3px 10px", borderRadius: 99, border: `1px solid rgba(255,255,255,0.08)` }}>
+          <span style={{ background: "rgba(27,37,64,0.05)", color: C.textMuted, fontSize: 10.5, padding: "3px 10px", borderRadius: 99, border: `1px solid rgba(27,37,64,0.12)` }}>
             ⏱ {t.zeit}
           </span>
         )}
@@ -937,7 +936,7 @@ function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill,
             flex: 1,
             height: 6,
             borderRadius: 99,
-            background: "rgba(255,255,255,0.06)",
+            background: "rgba(27,37,64,0.08)",
             overflow: "hidden",
             position: "relative",
             cursor: "pointer",
@@ -967,10 +966,10 @@ function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill,
       <div
         style={{
           display: "flex",
-          background: "rgba(255,255,255,0.04)",
+          background: "rgba(27,37,64,0.05)",
           borderRadius: 10,
           padding: 3,
-          border: "1px solid rgba(255,255,255,0.06)",
+          border: "1px solid rgba(27,37,64,0.08)",
         }}
       >
         {(["offen", "lernend", "sitzt"] as Lernstatus[]).map((st) => {
@@ -1002,7 +1001,7 @@ function ThemaCard({ thema: t, expanded, onToggle, onUpdate, onDelete, onAiFill,
 
       {/* Expanded */}
       {expanded && (
-        <div style={{ display: "grid", gap: 10, paddingTop: 10, borderTop: `1px solid rgba(255,255,255,0.06)` }}>
+        <div style={{ display: "grid", gap: 10, paddingTop: 10, borderTop: `1px solid rgba(27,37,64,0.08)` }}>
           <div style={{ display: "flex", gap: 6 }}>
             <select
               value={t.typ ?? "theorie"}

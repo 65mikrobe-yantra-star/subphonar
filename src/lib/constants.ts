@@ -54,29 +54,47 @@ export const FAECHER_DEFAULT: Fach[] = [
   { id: 5, name: "Wirtschaft", noten: [], gewichtung: 1 },
 ];
 
-// Dark palette — high-contrast build for cleaner, more stable look
+// Kinderfreundliche Palette:
+// Dunkler, warmer Navy-Hintergrund + HELLE, klare Karten mit dunklem Text.
+// Wichtige Regeln:
+//   - text/textMuted/textDim   = dunkle Farben für Text AUF hellen Karten
+//   - textOnDark/…OnDark        = helle Farben für Text AUF dunklem Chrome (Navbar, Page-Header, DailyHeader)
 export const C = {
-  purple: "#8B82FF",
-  purpleLight: "#C4BEFF",
-  purpleDim: "#8B82FF26",
-  amber: "#FFB13B",
-  amberDim: "#FFB13B26",
-  teal: "#22C793",
-  tealDim: "#22C79326",
-  red: "#E5484D",
-  redDim: "#E5484D26",
-  bg: "#07080F",
-  surface: "#12131C",
-  surfaceHigh: "#1B1D2A",
-  border: "#2A2C42",
-  borderLight: "#3A3D58",
-  text: "#FFFFFF",
-  textMuted: "#B4B6C9",
-  textDim: "#7A7D96",
-  chatBg: "#0F1018",
-  chatSurface: "#1A1B26",
-  chatBorder: "#2A2C42",
-  chatText: "#FFFFFF",
-  chatMuted: "#B4B6C9",
-  chatDim: "#7A7D96",
+  purple: "#7C6BFF",
+  purpleLight: "#B5ADFF",
+  purpleDim: "#7C6BFF1F",
+  amber: "#F59E0B",
+  amberDim: "#F59E0B22",
+  teal: "#10B981",
+  tealDim: "#10B98122",
+  red: "#EF4444",
+  redDim: "#EF444422",
+
+  // App-Hintergrund (dunkles, warmes Navy — nicht zu düster)
+  bg: "#0E1730",
+
+  // Karten-Oberflächen (HELL, freundlich, klarer Kontrast zum Navy)
+  surface: "#FBFDFF",       // Soft-Weiß
+  surfaceHigh: "#EAF5F1",   // sanftes Mintgrün für sekundäre Karten
+  surfaceSky: "#E6EFFB",    // sanftes Hellblau (optional als Akzent)
+  border: "#D8E1EC",
+  borderLight: "#BFC9D8",
+
+  // Text AUF hellen Karten (dunkles Anthrazit/Navy)
+  text: "#1B2540",
+  textMuted: "#4A5878",
+  textDim: "#7A88A6",
+
+  // Text AUF dunklem Chrome (Navbar, Page-Hero, DailyHeader-Panel)
+  textOnDark: "#F5F7FF",
+  textMutedOnDark: "#C9CEE6",
+  textDimOnDark: "#8A90B0",
+
+  // Chat-Panel: dunkles Glas mit hellen Message-Bubbles
+  chatBg: "#0F1730",
+  chatSurface: "#FBFDFF",
+  chatBorder: "#D8E1EC",
+  chatText: "#1B2540",
+  chatMuted: "#4A5878",
+  chatDim: "#7A88A6",
 };

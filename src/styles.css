@@ -143,11 +143,32 @@
   }
 }
 
-/* Subphonar — Dark-only, high-contrast build.
-   Light-mode was rolled back; component inline styles now use
-   the deepened palette in constants.ts. */
+/* Subphonar — dunkles Navy + helle Karten, kinderfreundliche Typografie. */
+html, body {
+  font-family: 'Nunito', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+body {
+  background: #0E1730;
+  color: #F5F7FF;
+}
+h1, h2, h3, .display {
+  font-family: 'Fraunces', 'Nunito', Georgia, serif;
+  letter-spacing: -0.01em;
+}
 
-/* Reduzierte Motion respektieren — Monster animiert dann nur minimal */
+/* Karten-Utility: helle, freundliche Kachel mit weichem Schatten */
+.kid-card {
+  background: #FBFDFF;
+  color: #1B2540;
+  border: 1px solid #D8E1EC;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px -18px rgba(10, 20, 45, 0.55), 0 2px 6px -2px rgba(10, 20, 45, 0.15);
+}
+
+/* Reduzierte Motion respektieren */
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.001ms !important;

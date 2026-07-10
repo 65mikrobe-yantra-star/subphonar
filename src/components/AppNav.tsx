@@ -60,7 +60,7 @@ export function AppNav() {
               fontSize: 12.5,
               fontWeight: 500,
               textDecoration: "none",
-              color: active ? "#fff" : C.textMuted,
+              color: active ? "#fff" : C.textMutedOnDark,
               background: active ? `${C.purple}33` : "transparent",
               border: `1px solid ${active ? C.purple + "66" : "transparent"}`,
               transition: "all 160ms ease",
