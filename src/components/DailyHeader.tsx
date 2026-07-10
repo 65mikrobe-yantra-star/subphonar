@@ -94,9 +94,9 @@ export function DailyHeader({ vocabTotal = 5 }: { vocabTotal?: number }) {
           <Flame size={24} color="#fff" strokeWidth={2.4} fill="#fff3" />
         </div>
         <div>
-          <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 600 }}>Daily Streak</div>
+          <div style={{ fontSize: 10, color: C.textDimOnDark, textTransform: "uppercase", letterSpacing: "0.1em", fontWeight: 700 }}>Daily Streak</div>
           <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", lineHeight: 1.1 }}>
-            {streak} <span style={{ fontSize: 12, color: C.textMuted, fontWeight: 500 }}>{streak === 1 ? "Tag" : "Tage"}</span>
+            {streak} <span style={{ fontSize: 12, color: C.textMutedOnDark, fontWeight: 500 }}>{streak === 1 ? "Tag" : "Tage"}</span>
           </div>
         </div>
       </div>
