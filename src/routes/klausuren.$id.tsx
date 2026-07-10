@@ -258,11 +258,11 @@ Sei präzise und prüfungsrelevant.`;
       <div style={s.main(aiOpen)}>
         {/* Header */}
         <div style={{ marginBottom: 18 }}>
-          <Link to="/klausuren" style={{ fontSize: 12, color: C.textMuted, textDecoration: "none" }}>
+          <Link to="/klausuren" style={{ fontSize: 12, color: C.textMutedOnDark, textDecoration: "none" }}>
             ← Klausuren
           </Link>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 8, flexWrap: "wrap" }}>
-            <h1 style={{ fontSize: 26, fontWeight: 700, color: C.text, margin: 0, letterSpacing: "-0.02em" }}>{klausur.title}</h1>
+            <h1 style={{ fontSize: 30, fontWeight: 800, color: "#fff", margin: 0, letterSpacing: "-0.02em", fontFamily: "'Fraunces', serif" }}>{klausur.title}</h1>
             <div style={{ ...s.pill(C.purpleDim, C.purpleLight), fontSize: 12, padding: "4px 12px" }}>{klausur.fach || "—"}</div>
             {klausur.datum && (
               <div style={{ ...s.pill(C.amberDim, C.amber), fontSize: 12, padding: "4px 12px" }}>{formatDate(klausur.datum)}</div>
@@ -281,11 +281,11 @@ Sei präzise und prüfungsrelevant.`;
                   marginTop: 10,
                   width: "100%",
                   textAlign: "left",
-                  background: "rgba(127,119,221,0.08)",
-                  border: `1px solid ${C.purple}33`,
-                  borderRadius: 10,
-                  padding: "8px 12px",
-                  color: C.textMuted,
+                  background: "rgba(124,107,255,0.14)",
+                  border: `1px solid ${C.purple}55`,
+                  borderRadius: 12,
+                  padding: "10px 14px",
+                  color: C.textMutedOnDark,
                   fontSize: 11.5,
                   cursor: "pointer",
                   lineHeight: 1.5,
@@ -295,9 +295,9 @@ Sei präzise und prüfungsrelevant.`;
                 }}
                 title="Chat fortsetzen"
               >
-                <span style={{ color: C.purpleLight, fontWeight: 600, flexShrink: 0 }}>✦ Zuletzt:</span>
+                <span style={{ color: C.purpleLight, fontWeight: 700, flexShrink: 0 }}>✦ Zuletzt:</span>
                 <span style={{ flex: 1 }}>{summary}</span>
-                <span style={{ color: C.textDim, flexShrink: 0 }}>↗</span>
+                <span style={{ color: C.textDimOnDark, flexShrink: 0 }}>↗</span>
               </button>
             );
           })()}
