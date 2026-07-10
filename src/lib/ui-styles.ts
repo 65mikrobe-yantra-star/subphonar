@@ -165,14 +165,14 @@ export const s = {
     marginBottom: 8,
   } as CSSProperties,
   tabBtn: (active: boolean, color: string): CSSProperties => ({
-    background: active ? color + "22" : "transparent",
-    border: active ? `1px solid ${color}66` : `1px solid ${C.border}`,
-    color: active ? color : C.textMuted,
-    padding: "6px 14px",
-    borderRadius: 8,
+    background: active ? color + "33" : "rgba(255,255,255,0.06)",
+    border: active ? `1px solid ${color}88` : `1px solid rgba(255,255,255,0.12)`,
+    color: active ? "#fff" : C.textMutedOnDark,
+    padding: "7px 14px",
+    borderRadius: 999,
     cursor: "pointer",
-    fontSize: 12,
-    fontWeight: active ? 600 : 400,
+    fontSize: 12.5,
+    fontWeight: active ? 700 : 600,
   }),
   // Modern dark glass chat panel — high contrast
   aiPanel: {
