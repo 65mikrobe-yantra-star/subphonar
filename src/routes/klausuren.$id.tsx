@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { AppNav } from "@/components/AppNav";
 import { AiPanel, getChatSummary, type AiTool } from "@/components/AiPanel";
 import { FileUploadZone } from "@/components/FileUploadZone";
@@ -12,7 +11,7 @@ import { APP_NAME, C, PERSONA_PREFIX, PRIORITY_COLORS, THEMA_STATUS_COLUMNS, TYP
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
 import { formatDate } from "@/lib/helpers";
-import { chat } from "@/lib/ai.functions";
+import { useChat } from "@/lib/ai-client";
 import type { AufgabenTyp, Flashcard, Klausur, Lernstatus, MindmapStroke, Prioritaet, Thema } from "@/lib/types";
 
 export const Route = createFileRoute("/klausuren/$id")({
@@ -60,7 +59,7 @@ function KlausurDetail() {
   const [showAllCards, setShowAllCards] = useState(false);
   const [allCardsLoading, setAllCardsLoading] = useState(false);
   const [fehlerInput, setFehlerInput] = useState("");
-  const chatFn = useServerFn(chat);
+  const chatFn = useChat();
 
   if (!klausur) {
     return (

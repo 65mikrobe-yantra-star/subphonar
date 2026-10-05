@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { C } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
-import { chat } from "@/lib/ai.functions";
+import { useChat } from "@/lib/ai-client";
 import type { ErklaerEntry, FileBlock, Klausur } from "@/lib/types";
 
 type Props = {
@@ -19,7 +18,7 @@ const MODI = [
 ] as const;
 
 export function ErklaerbaerTab({ klausur, systemPrompt, contextFiles, update }: Props) {
-  const chatFn = useServerFn(chat);
+  const chatFn = useChat();
   const eintraege = klausur.erklaerungen ?? [];
   const [mode, setMode] = useState<(typeof MODI)[number]["id"]>("erklaer");
   const [frage, setFrage] = useState("");

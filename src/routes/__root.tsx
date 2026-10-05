@@ -1,3 +1,4 @@
+import { AiQuotaBanner } from "@/components/AiQuotaBanner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -126,6 +127,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <MonsterProvider>
         <Outlet />
+        <AiQuotaBanner />
       </MonsterProvider>
     </QueryClientProvider>
   );

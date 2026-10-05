@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { C } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
-import { chat } from "@/lib/ai.functions";
+import { useChat } from "@/lib/ai-client";
 import { FileUploadZone } from "@/components/FileUploadZone";
 import type { FileBlock, Klausur, MockExam, MockExamQuestion } from "@/lib/types";
 
@@ -16,7 +15,7 @@ type Props = {
 const SCHWIER = ["leicht", "mittel", "schwer", "fies"] as const;
 
 export function PruefungsTab({ klausur, systemPrompt, contextFiles, update }: Props) {
-  const chatFn = useServerFn(chat);
+  const chatFn = useChat();
   const exams = klausur.exams ?? [];
   const altklausuren = klausur.altklausuren ?? [];
 

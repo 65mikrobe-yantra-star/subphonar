@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState, useEffect } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { AppNav } from "@/components/AppNav";
 import { AiPanel } from "@/components/AiPanel";
 import { DailyBrief } from "@/components/DailyBrief";
@@ -12,7 +11,7 @@ import { APP_NAME, C, FAECHER_DEFAULT, HARVEY_QUOTES, PERSONA_PREFIX } from "@/l
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
 import { avg, cleanMarkdown, formatDate, isOverdue, punkte2Note } from "@/lib/helpers";
-import { chat } from "@/lib/ai.functions";
+import { useChat } from "@/lib/ai-client";
 import type { Fach, Klausur, Todo } from "@/lib/types";
 
 
@@ -36,7 +35,7 @@ function Dashboard() {
   const [aiOpen, setAiOpen] = useState(false);
   const [plan, setPlan] = useLocalStorage<string>("sub.dashboard.plan", "");
   const [planLoading, setPlanLoading] = useState(false);
-  const chatFn = useServerFn(chat);
+  const chatFn = useChat();
   const streak = useDailyStreak();
   const { state: monsterState, fire } = useMonster();
 
