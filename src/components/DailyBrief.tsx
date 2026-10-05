@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
+import { useState } from "react";
 import { Check } from "lucide-react";
 import { C, PERSONA_PREFIX } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
 import { useLocalStorage } from "@/lib/storage";
-import { chat } from "@/lib/ai.functions";
+import { useChat } from "@/lib/ai-client";
 
 type Vocab = { word: string; ipa?: string; translation: string; example: string; repeat?: boolean };
 type Brief = { date: string; vocab: Vocab[]; finance: { topic: string; explanation: string } };
@@ -22,7 +21,7 @@ export function DailyBrief() {
   const [progress, setProgress] = useLocalStorage<VocabProgress>("sub.vocab.learned", { date: "", learned: [] });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const chatFn = useServerFn(chat);
+  const chatFn = useChat();
 
   const learnedToday = progress.date === todayKey() ? progress.learned : [];
   function toggleLearned(i: number) {
@@ -94,13 +93,6 @@ Beispielsätze schultauglich und alltagsnah.`;
     }
   }
 
-  useEffect(() => {
-    // Neu laden wenn: kein Brief, Datum alt, oder altes 5er-Format (v7 hat 7 Vokabeln)
-    if (!brief || brief.date !== todayKey() || brief.vocab.length !== 7) {
-      void generate();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   return (
     <div style={{ background: C.surface, border: `1px solid ${C.amber}33`, borderRadius: 12, padding: 16, marginBottom: 24 }}>
@@ -120,11 +112,17 @@ Beispielsätze schultauglich und alltagsnah.`;
         <div style={{ fontSize: 11, color: "#F09595", marginBottom: 10 }}>⚠ {error}</div>
       )}
 
+      {(!brief || brief.date !== todayKey()) && !loading && (
+        <button style={{ ...s.smallBtn(C.amber), padding: "8px 16px", fontSize: 12, marginBottom: 10 }} onClick={() => void generate()}>
+          ☀️ Heute laden
+        </button>
+      )}
+
       {!brief && loading && (
         <div style={{ fontSize: 12, color: C.textMuted, padding: 10 }}>Lade Vokabeln & Finanz-Thema…</div>
       )}
 
-      {brief && (
+      {brief && brief.date === todayKey() && (
         <div style={{ display: "grid", gridTemplateColumns: "1.3fr 1fr", gap: 14 }}>
           <div>
             <div style={{ fontSize: 10, color: C.textDim, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 6 }}>

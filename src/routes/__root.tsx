@@ -1,3 +1,5 @@
+import type { ErrorComponentProps } from "@tanstack/react-router";
+import { AiQuotaBanner } from "@/components/AiQuotaBanner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -36,7 +38,7 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
+function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
   useEffect(() => {
@@ -126,6 +128,7 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <MonsterProvider>
         <Outlet />
+        <AiQuotaBanner />
       </MonsterProvider>
     </QueryClientProvider>
   );

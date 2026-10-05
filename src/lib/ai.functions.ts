@@ -35,7 +35,7 @@ export const chat = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const apiKey = process.env.LOVABLE_API_KEY;
     if (!apiKey) {
-      return { text: "", error: "LOVABLE_API_KEY ist nicht konfiguriert." };
+      return { text: "", error: "LOVABLE_API_KEY ist nicht konfiguriert.", code: 401 };
     }
 
     const messages = data.messages.map((m, i) => {
@@ -63,7 +63,7 @@ export const chat = createServerFn({ method: "POST" })
     });
 
     if (data.systemPrompt) {
-      messages.unshift({ role: "system", content: data.systemPrompt });
+      messages.unshift({ role: "system", content: data.systemPrompt + "\n\nAntworte so knapp wie möglich, ohne Wiederholungen." });
     }
 
     try {
@@ -76,27 +76,30 @@ export const chat = createServerFn({ method: "POST" })
         body: JSON.stringify({
           model: data.model,
           messages,
-          max_tokens: 8000,
+          max_tokens: 4000,
         }),
       });
 
       if (res.status === 429) {
-        return { text: "", error: "Rate-Limit erreicht. Bitte kurz warten." };
+        return { text: "", error: "Rate-Limit erreicht. Bitte kurz warten.", code: 429 };
       }
       if (res.status === 402) {
-        return { text: "", error: "AI-Kontingent verbraucht. Bitte Workspace-Credits aufladen." };
+        return { text: "", error: "KI-Kontingent für diesen Monat aufgebraucht.", code: 402 };
+      }
+      if (res.status === 403) {
+        return { text: "", error: "KI aktuell nicht verfügbar (Limit erreicht).", code: 403 };
       }
       if (!res.ok) {
         const body = await res.text();
-        return { text: "", error: `Gateway-Fehler ${res.status}: ${body.slice(0, 200)}` };
+        return { text: "", error: `Gateway-Fehler ${res.status}: ${body.slice(0, 200)}`, code: res.status };
       }
 
       const json = (await res.json()) as {
         choices?: Array<{ message?: { content?: string } }>;
       };
       const text = json.choices?.[0]?.message?.content ?? "";
-      return { text, error: null as string | null };
+      return { text, error: null as string | null, code: 200 };
     } catch (e) {
-      return { text: "", error: e instanceof Error ? e.message : "Unbekannter Fehler" };
+      return { text: "", error: e instanceof Error ? e.message : "Unbekannter Fehler", code: 0 };
     }
   });

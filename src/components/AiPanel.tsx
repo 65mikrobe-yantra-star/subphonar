@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { C } from "@/lib/constants";
 import { s } from "@/lib/ui-styles";
-import { chat } from "@/lib/ai.functions";
+import { useChat } from "@/lib/ai-client";
 import { cleanMarkdown } from "@/lib/helpers";
 import type { ChatMessage, FileBlock } from "@/lib/types";
 
@@ -58,7 +57,7 @@ export function getChatSummary(key: string, max = 110): string | null {
 }
 
 export function AiPanel({ show, onClose, systemPrompt, files, extraContext, actionLabel, onAction, storageKey, tools }: Props) {
-  const chatFn = useServerFn(chat);
+  const chatFn = useChat();
   const [messages, setMessages] = useState<ChatMessage[]>(() => loadHistory(storageKey));
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -125,7 +124,7 @@ Regeln:
     setMessages(hist);
     setLoading(true);
     try {
-      const res = await chatFn({ data: { systemPrompt: systemPrompt + toolsPrompt, messages: hist, files: files ?? [], model: "google/gemini-2.5-flash" } });
+      const res = await chatFn({ data: { systemPrompt: systemPrompt + toolsPrompt, messages: hist.slice(-8), files: files ?? [], model: "google/gemini-2.5-flash" } });
       const raw = res.error ? `⚠️ ${res.error}` : res.text || "(Keine Antwort)";
       let display: string;
       if (res.error) {
